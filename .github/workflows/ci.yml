@@ -1,0 +1,74 @@
+name: Continuous Integration
+
+on:
+  # Trigger the workflow on push or pull request,
+  push:
+    branches:
+      - main
+      - develop
+  pull_request: {}
+
+jobs:
+  build:
+    name: Build the Site
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3.8.1
+        with:
+          # Version Spec of the version to use. Examples: 12.x, 10.15.1, >=10.15.0.
+          node-version: 16
+
+      - name: 📥 Download deps
+        run: npm install --frozen-lockfile
+
+      - name: Build the Site
+        run: npm run build
+
+  eslint-prettier:
+    name: ⬣ ESLint && 💅 Prettier
+    needs: build
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3.8.1
+        with:
+          # Version Spec of the version to use. Examples: 12.x, 10.15.1, >=10.15.0.
+          node-version: 16
+
+      - name: 📥 Download deps
+        uses: bahmutov/npm-install@v1
+
+      - name: Run linters
+        uses: wearerequired/lint-action@v2
+        with:
+          auto_fix: true
+          eslint: true
+          prettier: true
+
+  typecheck:
+    name: ʦ TypeScript
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3.8.1
+        with:
+          # Version Spec of the version to use. Examples: 12.x, 10.15.1, >=10.15.0.
+          node-version: 16
+
+      - name: 📥 Download deps
+        uses: bahmutov/npm-install@v1
+
+      - name: 🔎 Type check
+        run: npm run typecheck
