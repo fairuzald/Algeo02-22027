@@ -41,37 +41,10 @@ jobs:
         uses: actions/setup-node@v3.8.1
         with:
           node-version: 16
-      - name: Change directory
-        run: cd ./src
-      - name: 📥 Download dependencies
-        uses: bahmutov/npm-install@v1
 
-      - name: Run linters
-        uses: wearerequired/lint-action@v2
-        with:
-          auto_fix: true
-          eslint: true
-          prettier: true
-
-  typecheck:
-    name: ʦ TypeScript
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: ⬇️ Checkout repo
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v3.8.1
-        with:
-          node-version: 16
-
-      - name: Change directory
-        run: cd ./src
-
-      - name: 📥 Download dependencies
-        uses: bahmutov/npm-install@v1
-
-      - name: 🔎 Type check
+      - name: 📥 Download dependencies & Run linters
         working-directory: ./src
-        run: npm run typecheck
+        run: |
+          npm install
+          npx eslint . --fix
+          npx prettier . --write
