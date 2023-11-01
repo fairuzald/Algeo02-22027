@@ -7,7 +7,6 @@ on:
       - main
       - develop
   pull_request: {}
-
 jobs:
   build:
     name: Build the Site
@@ -16,14 +15,16 @@ jobs:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v4
 
+      - name: Change directory to src
+        run: cd src
+
       - name: Setup Node.js environment
         uses: actions/setup-node@v3.8.1
         with:
-          # Version Spec of the version to use. Examples: 12.x, 10.15.1, >=10.15.0.
           node-version: 16
 
       - name: 📥 Download deps
-        run: npm install --frozen-lockfile
+        run: npm install
 
       - name: Build the Site
         run: npm run build
@@ -37,10 +38,12 @@ jobs:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v3
 
+      - name: Change directory to src
+        run: cd src
+
       - name: Setup Node.js environment
         uses: actions/setup-node@v3.8.1
         with:
-          # Version Spec of the version to use. Examples: 12.x, 10.15.1, >=10.15.0.
           node-version: 16
 
       - name: 📥 Download deps
@@ -61,10 +64,12 @@ jobs:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v3
 
+      - name: Change directory to src
+        run: cd src
+
       - name: Setup Node.js environment
         uses: actions/setup-node@v3.8.1
         with:
-          # Version Spec of the version to use. Examples: 12.x, 10.15.1, >=10.15.0.
           node-version: 16
 
       - name: 📥 Download deps
