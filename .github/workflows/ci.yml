@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: 16
 
-      - name: 📥 Download deps
+      - name: 📥 Download dependencies
         working-directory: ./src
         run: npm install
 
@@ -41,10 +41,10 @@ jobs:
         uses: actions/setup-node@v3.8.1
         with:
           node-version: 16
-
-      - name: 📥 Download deps
-        working-directory: ./src
-        run: npm install
+      - name: Change directory
+        run: cd ./src
+      - name: 📥 Download dependencies
+        uses: bahmutov/npm-install@v1
 
       - name: Run linters
         uses: wearerequired/lint-action@v2
@@ -66,9 +66,11 @@ jobs:
         with:
           node-version: 16
 
-      - name: 📥 Download deps
-        working-directory: ./src
-        run: npm install
+      - name: Change directory
+        run: cd ./src
+
+      - name: 📥 Download dependencies
+        uses: bahmutov/npm-install@v1
 
       - name: 🔎 Type check
         working-directory: ./src
