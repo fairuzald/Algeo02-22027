@@ -1,0 +1,75 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request: {}
+
+jobs:
+  build:
+    name: Build the Site
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3.8.1
+        with:
+          node-version: 16
+
+      - name: 📥 Download deps
+        working-directory: ./src
+        run: npm install
+
+      - name: Build the Site
+        working-directory: ./src
+        run: npm run build
+
+  eslint-prettier:
+    name: ⬣ ESLint && 💅 Prettier
+    needs: build
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3.8.1
+        with:
+          node-version: 16
+
+      - name: 📥 Download deps
+        working-directory: ./src
+        run: npm install
+
+      - name: Run linters
+        uses: wearerequired/lint-action@v2
+        with:
+          auto_fix: true
+          eslint: true
+          prettier: true
+
+  typecheck:
+    name: ʦ TypeScript
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3.8.1
+        with:
+          node-version: 16
+
+      - name: 📥 Download deps
+        working-directory: ./src
+        run: npm install
+
+      - name: 🔎 Type check
+        working-directory: ./src
+        run: npm run typecheck
