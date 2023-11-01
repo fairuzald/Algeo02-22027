@@ -15,15 +15,13 @@ jobs:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v4
 
-      - name: Change directory to src
-        run: cd src
-
       - name: Setup Node.js environment
         uses: actions/setup-node@v3.8.1
         with:
           node-version: 16
 
       - name: 📥 Download deps
+        working-directory: ./src
         run: npm install
 
       - name: Build the Site
