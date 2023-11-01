@@ -1,0 +1,29 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request: {}
+
+jobs:
+  build:
+    name: Build the Site
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3.8.1
+        with:
+          node-version: 16
+
+      - name: 📥 Download dependencies
+        working-directory: ./src
+        run: npm install
+
+      - name: Build the Site
+        working-directory: ./src
+        run: npm run build
