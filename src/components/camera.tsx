@@ -6,7 +6,7 @@ const Camera: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [image, setImage] = useState<string>('');
-
+  const [countdown, setCountdown] = useState<number>(10);
   useEffect(() => {
     // Mengakses webcam
     navigator.mediaDevices
@@ -23,12 +23,25 @@ const Camera: React.FC = () => {
     // Mengatur interval waktu untuk menangkap gambar
     const interval = setInterval(() => {
       captureImage();
-    }, 5000); // Menangkap gambar setiap 5 detik
+      setCountdown(10);
+    }, 10000); // Menangkap gambar setiap 10 detik
 
     return () => {
       clearInterval(interval);
     };
   }, []);
+
+  // countdowndown reduce
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCountdown((prev) => prev - 1);
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }),
+    [countdown];
 
   const captureImage = () => {
     if (canvasRef.current && videoRef.current) {
@@ -51,6 +64,7 @@ const Camera: React.FC = () => {
           autoPlay
           className='h-[480px] bg-[#d9d9d9]'
         ></video>
+
         <canvas
           ref={canvasRef}
           width={640}
@@ -65,10 +79,13 @@ const Camera: React.FC = () => {
           height={480}
           src={image}
           alt='Captured image'
-          className='h-[480px] bg-[#d9d9d9]'
+          className='h-[480px] bg-[#d9d9d9] object-contain object-center'
         />
         <p className='text-white font-poppins text-xl text-center'>
-          Catch Image
+          {countdown > 0 ? 'Catch Image in ' + countdown : 'Cheese!!!'}{' '}
+          {countdown > 0 && countdown == 1
+            ? 'second'
+            : countdown > 0 && 'seconds'}
         </p>
       </div>
     </div>

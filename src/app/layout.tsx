@@ -25,7 +25,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang='en'>
-      <body className={`${inter.variable} ${poppins.variable}`}>
+      <body
+        suppressHydrationWarning={true}
+        className={`${inter.variable} ${poppins.variable}`}
+      >
         {children}
       </body>
     </html>

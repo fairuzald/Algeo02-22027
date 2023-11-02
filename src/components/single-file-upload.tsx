@@ -1,6 +1,9 @@
 'use client';
+import Button from '@/components/button';
+import CustomLink from '@/components/custom-link';
 import FileUploadEmpty from '@/components/icons/file-upload-empty-icon';
 import Image from 'next/image';
+import { type } from 'os';
 import React, {
   useState,
   ChangeEvent,
@@ -9,12 +12,16 @@ import React, {
   useRef,
   DragEvent,
 } from 'react';
-
-const SingleFileUpload: React.FC = () => {
+interface SingleFileUploadProps {
+  setFileChange: React.Dispatch<React.SetStateAction<File | null>>;
+  type: 'camera' | 'file' | 'scrapping';
+}
+const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
+  setFileChange,
+  type,
+}) => {
   const [file, setFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  console.log(file);
-  console.log(imageUrl);
   useEffect(() => {
     // Check if there is an image URL in the localStorage
     const storedImageUrl = localStorage.getItem('imageUrl');
@@ -43,28 +50,34 @@ const SingleFileUpload: React.FC = () => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (file) {
-      const formData = new FormData();
-      formData.append('file', file);
+    // if (file) {
+    //   const formData = new FormData();
+    //   formData.append('file', file);
 
-      const response = await fetch('/api/uploadfile/', {
-        method: 'POST',
-        body: formData,
-      });
+    //   const response = await fetch('/api/uploadfile/', {
+    //     method: 'POST',
+    //     body: formData,
+    //   });
 
-      const data = await response.json();
-      console.log(data);
-    }
+    //   const data = await response.json();
+    //   console.log(data);
+    // }
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
+      // Call the callback function with the selected file
+      setFileChange(selectedFile);
+    } else {
+      // Call the callback function with null if no file is selected
+      setFileChange(null);
     }
   };
 
   const hiddenFileInput = useRef<HTMLInputElement>(null);
+
   const handleClick = () => {
     if (hiddenFileInput.current) {
       hiddenFileInput.current.click();
@@ -88,25 +101,49 @@ const SingleFileUpload: React.FC = () => {
     setImageUrl(null);
     localStorage.removeItem('imageUrl');
   };
+  const links = {
+    file: {
+      href: '/camera',
+      text: 'Use Camera',
+      altHref: '/scrapping',
+      altText: 'Use Scrapping',
+    },
+    camera: {
+      href: '/file',
+      text: 'Use File',
+      altHref: '/scrapping',
+      altText: 'Use Scrapping',
+    },
+    scrapping: {
+      href: '/file',
+      text: 'Use File',
+      altHref: '/camera',
+      altText: 'Use Camera',
+    },
+  };
+
+  const defaultType = 'file';
+
+  const link = links[type] || links[defaultType];
 
   return (
     <form onSubmit={handleSubmit}>
-      <section className='flex flex-col lg:flex-row gap-10 items-stretch justify-center'>
+      <section className='flex flex-col lg:flex-row gap-10 items-center lg:items-stretch justify-center'>
         {imageUrl && file ? (
           <div className='rounded-xl overflow-hidden'>
             <Image
               src={imageUrl}
-              alt={file.name}
+              alt={file.name ? file.name : 'Image Query'}
               width={550}
               height={500}
-              className='h-[340px] w-[550px] object-contain rounded-xl'
+              className='h-[250px] lg:h-[340px] w-full lg:w-[550px] object-contain rounded-xl'
             />
           </div>
         ) : (
           <div
             onDragOver={handleDragOver}
             onDrop={handleDrop}
-            className='w-[550px] max-w-full px-4 py-8 lg:py-12 flex flex-col justify-center items-center rounded-lg border-dashed border-[3px] border-[#dbb88b] text-[#e6e6e6] space-y-4'
+            className='w-[550px] max-w-full px-4 py-8 lg:py-12 flex flex-col justify-center items-center rounded-lg border-dashed border-[3px] border-gold text-[#e6e6e6] space-y-4'
           >
             <button onClick={handleClick} type='button'>
               <FileUploadEmpty
@@ -121,27 +158,25 @@ const SingleFileUpload: React.FC = () => {
             </p>
           </div>
         )}
-        <div className='flex flex-col gap-1'>
-          <div className='flex flex-col gap-6'>
-            <h2 className='font-poppins text-[#dbb88b] font-semibold text-2xl'>
+        <div className='flex flex-col gap-4 lg:gap-6'>
+          <div className='flex flex-col gap-2 lg:gap-4'>
+            <h2 className='font-poppins text-gold font-semibold text-lg lg:text-2xl'>
               Image Input
             </h2>
             <div className='space-y-3'>
               <p className='text-white font-poppins text-lg'>{file?.name}</p>
               <div className='flex gap-4'>
-                <button
-                  onClick={handleClick}
-                  className='text-base rounded-lg font-semibold font-poppins text-center py-3 px-4 bg-gradient-to-r from-[#1363D9] to-[#7939d4]'
-                >
+                <Button onClick={handleClick} size='medium' color='gradient-bp'>
                   Insert {file ? 'a New ' : 'an'} Image
-                </button>
+                </Button>
                 {file && (
-                  <button
+                  <Button
                     onClick={handleDelete}
-                    className='text-base rounded-lg font-semibold font-poppins text-center py-3 px-4 bg-gradient-to-r from-[#1363D9] to-[#7939d4]'
+                    size='medium'
+                    color='gradient-bp'
                   >
-                    Delete the Image
-                  </button>
+                    Delete Image
+                  </Button>
                 )}
               </div>
             </div>
@@ -152,6 +187,17 @@ const SingleFileUpload: React.FC = () => {
               onChange={handleFileChange}
               className='hidden'
             />
+          </div>
+          <p className='font-poppins text-lg lg:text-2xl text-gold font-semibold'>
+            Input Option
+          </p>
+          <div className='flex flex-col gap-3 lg:gap-4'>
+            <CustomLink color='gradient-bp' href={link.href} size='medium'>
+              {link.text}
+            </CustomLink>
+            <CustomLink color='gradient-bp' href={link.altHref} size='medium'>
+              {link.altText}
+            </CustomLink>
           </div>
         </div>
       </section>
