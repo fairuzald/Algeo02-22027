@@ -13,7 +13,7 @@ export default function ImageResult({
   return (
     <div className='flex flex-col items-center justify-center w-full sm:max-w-[300px] 2xl:max-w-[500px]'>
       <div
-        className={`bg-transparent border-[#dbb88b] w-full relative sm:max-w-[300px] 2xl:max-w-[500px] aspect-[5/3] rounded-xl animate-blink`}
+        className={`bg-transparent border-[#dbb88b] w-full relative sm:max-w-[300px] 2xl:max-w-[500px] aspect-[5/3] max-sm:max-h-[250px] rounded-xl animate-blink`}
       >
         <Image
           src={imageUrl}

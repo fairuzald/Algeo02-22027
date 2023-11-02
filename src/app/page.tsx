@@ -40,13 +40,12 @@ export default function Home() {
         )}
       </section>
       <hr className='border-1 border-slate-300 w-full' />
-
       <section className='flex flex-col gap-4'>
         <h2 className='font-poppins text-xl lg:text-2xl flex font-semibold'>
           Data set input
         </h2>
         <MultipleFileUpload setFileChange={setImageData} />
-        <div className='flex items-center justify-center gap-4 py-4'>
+        <div className='flex items-center flex-wrap justify-center gap-4 py-4'>
           <p className='text-lg lg:text-2xl font-poppins font-semibold text-gold'>
             Other Input Query Option:
           </p>

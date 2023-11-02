@@ -47,7 +47,7 @@ export default function Home() {
         <h2 className='font-poppins text-xl lg:text-2xl flex font-semibold'>
           Data set input
         </h2>
-        <div className='flex gap-7'>
+        <div className='flex gap-7 max-sm:flex-col'>
           <TextInput
             input={link}
             setInput={setLink}
@@ -57,7 +57,7 @@ export default function Home() {
             Get the data
           </Button>
         </div>
-        <div className='flex items-center justify-center gap-4 py-4'>
+        <div className='flex items-center flex-wrap justify-center gap-4 py-4'>
           <p className='text-lg lg:text-2xl font-poppins font-semibold text-gold'>
             Other Input Query Option:
           </p>

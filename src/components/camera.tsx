@@ -125,7 +125,7 @@ const Camera: React.FC<{ onCapture: (dataUrl: string) => void }> = ({
           </p>
         </div>
       </div>
-      <div className='flex items-center justify-center gap-4'>
+      <div className='flex flex-wrap items-center justify-center gap-4'>
         <p className='text-lg lg:text-2xl font-poppins font-semibold text-gold'>
           Other Input Query Option:
         </p>

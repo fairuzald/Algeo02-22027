@@ -161,7 +161,7 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
           </div>
         )}
         <div className='flex flex-col gap-4 lg:gap-6'>
-          <div className='flex flex-col gap-2 lg:gap-4'>
+          <div className='flex flex-col gap-2 max-lg:items-center lg:gap-4'>
             <h2 className='font-poppins text-gold font-semibold  text-lg lg:text-2xl'>
               Image Input
             </h2>
