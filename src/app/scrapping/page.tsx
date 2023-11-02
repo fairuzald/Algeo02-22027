@@ -8,6 +8,7 @@ import Button from '@/components/button';
 
 import { useParams, useSearchParams } from 'next/navigation';
 import Camera from '@/components/camera';
+import TextInput from '@/components/text-input';
 import CustomLink from '@/components/custom-link';
 
 export default function Home() {
@@ -27,6 +28,7 @@ export default function Home() {
         setImageQuery(file);
       });
   };
+  const [link, setLink] = useState<string>('');
   return (
     <main className='flex gap-8 text-white lg:gap-10 min-h-screen flex-col py-20 px-8 sm:px-10 md:px-20 lg:px-40 bg-gradient-to-tr from-[#455976] via-[55%] via-[#2A182e]  to-[#8b3f25]'>
       <h1 className='font-poppins font-bold text-3xl lg:text-4xl tracking-wide text-center'>
@@ -45,13 +47,22 @@ export default function Home() {
         <h2 className='font-poppins text-xl lg:text-2xl flex font-semibold'>
           Data set input
         </h2>
-        <MultipleFileUpload setFileChange={setImageData} />
+        <div className='flex gap-7'>
+          <TextInput
+            input={link}
+            setInput={setLink}
+            placeHolder='Masukkan link web yang mau discrapping'
+          />
+          <Button color='gradient-bp' size='small' isRounded>
+            Get the data
+          </Button>
+        </div>
         <div className='flex items-center justify-center gap-4 py-4'>
           <p className='text-lg lg:text-2xl font-poppins font-semibold text-gold'>
             Other Input Query Option:
           </p>
-          <CustomLink color='gradient-bp' href='/scrapping' size='medium'>
-            Data Scrapping
+          <CustomLink color='gradient-bp' href='/' size='medium'>
+            Files Upload
           </CustomLink>
         </div>
       </section>

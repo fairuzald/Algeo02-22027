@@ -10,6 +10,7 @@ import React, {
 import FileUploadEmpty from '@/components/icons/file-upload-empty-icon';
 import GroupPagination from '@/components/group-pagination';
 import Button from '@/components/button';
+import CustomLink from '@/components/custom-link';
 interface MultipleFileUploadProps {
   setFileChange: React.Dispatch<React.SetStateAction<File[] | []>>;
 }
@@ -121,7 +122,7 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
           </div>
         )}
 
-        <div className='flex flex-col gap-3 lg:gap-6'>
+        <div className='flex items-center flex-col gap-3 lg:gap-6'>
           <div className='space-y-3'>
             <div className='flex gap-4'>
               <Button onClick={handleClick} size='medium' color='gradient-bp'>
@@ -138,6 +139,7 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
               )}
             </div>
           </div>
+
           <input
             ref={hiddenFileInput}
             type='file'

@@ -3,6 +3,7 @@ import Button from '@/components/button';
 import CustomLink from '@/components/custom-link';
 import FileUploadEmpty from '@/components/icons/file-upload-empty-icon';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { type } from 'os';
 import React, {
   useState,
@@ -22,6 +23,7 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
 }) => {
   const [file, setFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const pathname = usePathname();
   useEffect(() => {
     // Check if there is an image URL in the localStorage
     const storedImageUrl = localStorage.getItem('imageUrl');
@@ -128,7 +130,7 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
 
   return (
     <form onSubmit={handleSubmit}>
-      <section className='flex flex-col lg:flex-row gap-10 items-center lg:items-stretch justify-center'>
+      <div className='flex flex-col lg:flex-row gap-10 items-center lg:items-stretch justify-center'>
         {imageUrl && file ? (
           <div className='rounded-xl overflow-hidden'>
             <Image
@@ -160,7 +162,7 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
         )}
         <div className='flex flex-col gap-4 lg:gap-6'>
           <div className='flex flex-col gap-2 lg:gap-4'>
-            <h2 className='font-poppins text-gold font-semibold text-lg lg:text-2xl'>
+            <h2 className='font-poppins text-gold font-semibold  text-lg lg:text-2xl'>
               Image Input
             </h2>
             <div className='space-y-3'>
@@ -188,19 +190,19 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
               className='hidden'
             />
           </div>
-          <p className='font-poppins text-lg lg:text-2xl text-gold font-semibold'>
-            Input Option
+          <p className='font-poppins text-lg lg:text-2xl text-gold font-semibold '>
+            Other Input Query Option
           </p>
-          <div className='flex flex-col gap-3 lg:gap-4'>
-            <CustomLink color='gradient-bp' href={link.href} size='medium'>
-              {link.text}
-            </CustomLink>
-            <CustomLink color='gradient-bp' href={link.altHref} size='medium'>
-              {link.altText}
-            </CustomLink>
-          </div>
+
+          <CustomLink
+            color='gradient-bp'
+            href={pathname + '?camera=true'}
+            size='medium'
+          >
+            Camera
+          </CustomLink>
         </div>
-      </section>
+      </div>
     </form>
   );
 };
