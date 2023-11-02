@@ -15,8 +15,9 @@ export default function Home() {
       <h1 className='font-poppins font-bold text-3xl lg:text-4xl tracking-wide text-center'>
         Reverse Image Search
       </h1>
-
-      <SingleFileUpload setFileChange={setImageQuery} type='file' />
+      <section>
+        <SingleFileUpload setFileChange={setImageQuery} type='file' />
+      </section>
       <hr className='border-1 border-slate-300 w-full' />
 
       <section className='flex flex-col gap-4'>
@@ -26,11 +27,11 @@ export default function Home() {
         <MultipleFileUpload setFileChange={setImageData} />
       </section>
       <hr className='border-1 border-slate-300 w-full' />
-      <section className='flex flex-col lg:flex-row justify-between w-full gap-4'>
-        <h2 className='font-poppins text-xl lg:text-2xl flex font-semibold'>
+      <section className='flex flex-col lg:flex-row justify-between items-center w-full gap-4'>
+        <h2 className='font-poppins text-xl lg:text-2xl flex font-semibold '>
           CBIR Processing
         </h2>
-        <div className='flex flex-wrap gap-5 lg:gap-10 items-center justify-between'>
+        <div className='flex flex-1 max-lg:w-full flex-wrap max-sm px-10 gap-5 lg:gap-10 items-center justify-around md:justify-between'>
           <Switch
             checked={isTexture}
             onChange={setIsTexture}

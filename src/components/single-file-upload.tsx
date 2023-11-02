@@ -109,13 +109,13 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
       altText: 'Use Scrapping',
     },
     camera: {
-      href: '/file',
+      href: '/',
       text: 'Use File',
       altHref: '/scrapping',
       altText: 'Use Scrapping',
     },
     scrapping: {
-      href: '/file',
+      href: '/',
       text: 'Use File',
       altHref: '/camera',
       altText: 'Use Camera',
