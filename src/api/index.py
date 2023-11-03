@@ -3,6 +3,7 @@ from typing import List
 from urllib.parse import urlparse, urlunparse
 from api.scraper import ImageScraper
 from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI()
 # Add CORS middleware
 app.add_middleware(
@@ -12,9 +13,12 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all methods
     allow_headers=["*"],  # Allow all headers
 )
+
+
 @app.get("/api/python")
 def hello_world():
     return {"message": "Hello World"}
+
 
 @app.post("/api/uploadfiles/")
 async def create_upload_files(files: List[UploadFile] = File(...)):
@@ -26,10 +30,20 @@ async def create_upload_files(files: List[UploadFile] = File(...)):
 
 scraper = ImageScraper()
 
+
 @app.get("/api/scrape")
-async def get_image_scrape(url: str):
+async def get_image_scrape(url: str, limits: int):
     # Parse the URL query parameter
     parsed_url = urlparse(url)
     # Reconstruct the full URL
-    full_url = urlunparse((parsed_url.scheme, parsed_url.netloc, parsed_url.path, parsed_url.params, parsed_url.query, parsed_url.fragment))
-    return scraper.image_of_the_day(full_url)
+    full_url = urlunparse(
+        (
+            parsed_url.scheme,
+            parsed_url.netloc,
+            parsed_url.path,
+            parsed_url.params,
+            parsed_url.query,
+            parsed_url.fragment,
+        )
+    )
+    return scraper.get_image(full_url, limits)

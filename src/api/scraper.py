@@ -1,28 +1,66 @@
-# image_scraper.py
-from typing import List
-import requests as _requests
+from typing import Dict, List
+import requests
 from urllib.parse import urljoin
-import bs4 as _bs4
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from bs4 import BeautifulSoup
+
 
 class ImageScraper:
-    def _get_page(self, url: str) -> _bs4.BeautifulSoup:
-        page = _requests.get(url)
-        soup = _bs4.BeautifulSoup(page.content, "html.parser")
+    def _get_page(self, url: str) -> BeautifulSoup:
+        page = requests.get(url)
+        soup = BeautifulSoup(page.content, "html.parser")
         return soup
 
-    def image_of_the_day(self, url: str) -> List[str]:
+    def _get_page_driver(self, url: str) -> BeautifulSoup:
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        driver = webdriver.Chrome(options=chrome_options)
+        driver.get(url)
+
+        # Tunggu hingga semua elemen di dalam DOM selesai dimuat
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_all_elements_located((By.XPATH, "//body/*"))
+        )
+
+        soup = BeautifulSoup(driver.page_source, "html.parser")
+        driver.quit()
+        return soup
+
+    def get_image(self, url: str, limits: int = 0) -> List[Dict[str, str]]:
         base_url = url
+        # Get the parsed page content
         page = self._get_page(base_url)
-        raw_image = page.find_all("img")
+        # Find all image elements on the page, limited by the specified limits
+        raw_image = page.find_all("img", limit=limits)
+        
+        if(len(raw_image)==0):
+            page = self._get_page_driver(base_url)
+            raw_image = page.find_all("img", limit=limits)
+            
+        # Initialize an empty list to store the image data
         lists = []
+        # Initialize a counter for image titles without alt text
+        counter = 0
         for event in raw_image:
-            # Get the relative URL from the "src" attribute
+            # Get the relative URL of the image
             relative_url = event.get("src")
-            # Check if the relative URL already contains "http" or "https"
-            if relative_url.startswith(("http", "https")):
-                absolute_url = relative_url
-            else:
-                # Combine the base URL with the relative URL to get the absolute URL
-                absolute_url = urljoin(base_url, relative_url)
-            lists.append(absolute_url)
+            # Get the alt text of the image
+            alt_text = event.get("alt")
+            # If the alt text is empty, generate a default title
+            if alt_text == "":
+                counter += 1
+                alt_text = f"Image {counter}"
+            # If the relative URL is not empty, generate the absolute URL
+            if relative_url:
+                if relative_url.startswith(("http", "https")):
+                    absolute_url = relative_url
+                else:
+                    absolute_url = urljoin(base_url, relative_url)
+                # Append the image data to the list
+                lists.append({"url": absolute_url, "title": alt_text})
         return lists
+        
