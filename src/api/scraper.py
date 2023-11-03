@@ -8,25 +8,30 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 
-
 class ImageScraper:
     def _get_page(self, url: str) -> BeautifulSoup:
+        # Make a GET request to the URL and parse the page content
         page = requests.get(url)
         soup = BeautifulSoup(page.content, "html.parser")
         return soup
 
     def _get_page_driver(self, url: str) -> BeautifulSoup:
+        # Set up Chrome options for headless browsing
         chrome_options = Options()
         chrome_options.add_argument("--headless")
+        # Initialize the Chrome webdriver
         driver = webdriver.Chrome(options=chrome_options)
+        # Navigate to the URL
         driver.get(url)
 
-        # Tunggu hingga semua elemen di dalam DOM selesai dimuat
+        # Wait until all elements in the DOM are loaded
         WebDriverWait(driver, 10).until(
             EC.presence_of_all_elements_located((By.XPATH, "//body/*"))
         )
 
+        # Parse the page content with BeautifulSoup
         soup = BeautifulSoup(driver.page_source, "html.parser")
+        # Close the webdriver
         driver.quit()
         return soup
 
@@ -38,6 +43,7 @@ class ImageScraper:
         raw_image = page.find_all("img", limit=limits)
         
         if(len(raw_image)==0):
+            # If no images are found, try using the Selenium webdriver
             page = self._get_page_driver(base_url)
             raw_image = page.find_all("img", limit=limits)
             
@@ -63,4 +69,3 @@ class ImageScraper:
                 # Append the image data to the list
                 lists.append({"url": absolute_url, "title": alt_text})
         return lists
-        
