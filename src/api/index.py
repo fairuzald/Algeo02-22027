@@ -3,7 +3,7 @@ from typing import List
 from urllib.parse import urlparse, urlunparse
 from api.scraper import ImageScraper
 from fastapi.middleware.cors import CORSMiddleware
-app = FastAPI()
+app = FastAPI(docs_url="/api/docs", openapi_url="/api/openapi.json")
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
