@@ -1,4 +1,3 @@
-import time
 from typing import Dict, List
 import requests
 from urllib.parse import urljoin
@@ -17,15 +16,35 @@ class ImageScraper:
         return soup
 
     def _get_page_driver(self, url: str) -> BeautifulSoup:
-        # Set up Chrome options for headless browsing
-        chrome_options = Options()
-        chrome_options.add_argument("--headless")
-        driver = webdriver.Chrome(options=chrome_options)
-        driver.get(url)
-        time.sleep(3)  # Tunggu halaman dimuat sepenuhnya
-        soup = BeautifulSoup(driver.page_source, "html.parser")
-        driver.quit()
-        return soup
+        try:
+            # Set up Chrome options for headless browsing
+            chrome_options = Options()
+            chrome_options.add_argument("--headless")
+            # Initialize the Chrome webdriver
+            driver = webdriver.Chrome(options=chrome_options)
+            # Navigate to the URL
+            driver.get(url)
+            print("URL navigated")
+
+            # Wait until all elements in the DOM are loaded
+            WebDriverWait(driver, 3).until(
+                EC.presence_of_all_elements_located((By.XPATH, "//body/*"))
+            )
+            print("DOM loaded")
+
+            # Parse the page content with BeautifulSoup
+            soup = BeautifulSoup(driver.page_source, "html.parser")
+            print("Page parsed")
+            return soup
+
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return None
+
+        finally:
+            # Close the webdriver
+            driver.quit()
+
 
     def get_image(self, url: str, limits: int = 0) -> List[Dict[str, str]]:
         base_url = url
