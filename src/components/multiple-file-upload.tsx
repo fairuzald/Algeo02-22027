@@ -19,7 +19,6 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
 }) => {
   const [files, setFiles] = useState<File[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 6;
 
   useEffect(() => {
@@ -99,8 +98,6 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
             files={files}
             imageUrls={imageUrls}
             itemsPerPage={itemsPerPage}
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
           />
         ) : (
           <div
