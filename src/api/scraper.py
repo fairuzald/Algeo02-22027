@@ -1,3 +1,4 @@
+import time
 from typing import Dict, List
 import requests
 from urllib.parse import urljoin
@@ -19,19 +20,10 @@ class ImageScraper:
         # Set up Chrome options for headless browsing
         chrome_options = Options()
         chrome_options.add_argument("--headless")
-        # Initialize the Chrome webdriver
         driver = webdriver.Chrome(options=chrome_options)
-        # Navigate to the URL
         driver.get(url)
-
-        # Wait until all elements in the DOM are loaded
-        WebDriverWait(driver, 3).until(
-            EC.presence_of_all_elements_located((By.XPATH, "//body/*"))
-        )
-
-        # Parse the page content with BeautifulSoup
+        time.sleep(3)  # Tunggu halaman dimuat sepenuhnya
         soup = BeautifulSoup(driver.page_source, "html.parser")
-        # Close the webdriver
         driver.quit()
         return soup
 
