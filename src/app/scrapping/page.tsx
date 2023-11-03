@@ -32,9 +32,7 @@ export default function Home() {
   const [link, setLink] = useState<string>('');
   const handleGetData = async () => {
     // Send a GET request to the API with the link as a query parameter
-    const response = await fetch(
-      `http://localhost:8000/scrape?url=${encodeURIComponent(link)}`
-    );
+    const response = await fetch(`/api/scrape?url=${encodeURIComponent(link)}`);
     const data = await response.json();
     setImageData(data);
   };
