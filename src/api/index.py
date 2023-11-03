@@ -1,11 +1,17 @@
 from fastapi import FastAPI, File, UploadFile, Query
 from typing import List
-
-import requests
-from bs4 import BeautifulSoup
-
+from urllib.parse import urlparse, urlunparse
+from api.scraper import ImageScraper
+from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
-
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all methods
+    allow_headers=["*"],  # Allow all headers
+)
 @app.get("/api/python")
 def hello_world():
     return {"message": "Hello World"}
@@ -17,11 +23,13 @@ async def create_upload_files(files: List[UploadFile] = File(...)):
             f.write(file.file.read())
     return {"filenames": [file.filename for file in files]}
 
-@app.post("/api/scrape")
-def scrape_website(url: str = Query(..., alias="url")):
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    image_tags = soup.find_all('img')
-    for image in image_tags:
-        print(image['src'])
-    return {'image_urls': [image['src'] for image in image_tags]}
+
+scraper = ImageScraper()
+
+@app.get("/scrape")
+async def get_image_scrape(url: str):
+    # Parse the URL query parameter
+    parsed_url = urlparse(url)
+    # Reconstruct the full URL
+    full_url = urlunparse((parsed_url.scheme, parsed_url.netloc, parsed_url.path, parsed_url.params, parsed_url.query, parsed_url.fragment))
+    return scraper.image_of_the_day(full_url)

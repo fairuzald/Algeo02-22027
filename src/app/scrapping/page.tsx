@@ -10,10 +10,11 @@ import { useParams, useSearchParams } from 'next/navigation';
 import Camera from '@/components/camera';
 import TextInput from '@/components/text-input';
 import CustomLink from '@/components/custom-link';
+import GroupPagination from '@/components/scrape-pagination';
 
 export default function Home() {
   const [imageQuery, setImageQuery] = useState<File | null>(null);
-  const [imageData, setImageData] = useState<File[]>([]);
+  const [imageData, setImageData] = useState<string[]>([]);
   const [isTexture, setIsTexture] = useState<boolean>(false);
   const searchParams = useSearchParams();
   const isCamera = searchParams.get('camera') === 'true';
@@ -29,6 +30,15 @@ export default function Home() {
       });
   };
   const [link, setLink] = useState<string>('');
+  const handleGetData = async () => {
+    // Send a GET request to the API with the link as a query parameter
+    const response = await fetch(
+      `http://localhost:8000/scrape?url=${encodeURIComponent(link)}`
+    );
+    const data = await response.json();
+    setImageData(data);
+  };
+
   return (
     <main className='flex gap-8 text-white lg:gap-10 min-h-screen flex-col py-20 px-8 sm:px-10 md:px-20 lg:px-40 bg-gradient-to-tr from-[#455976] via-[55%] via-[#2A182e]  to-[#8b3f25]'>
       <h1 className='font-poppins font-bold text-3xl lg:text-4xl tracking-wide text-center'>
@@ -38,7 +48,7 @@ export default function Home() {
         {isCamera ? (
           <Camera onCapture={handleCapture}></Camera>
         ) : (
-          <SingleFileUpload setFileChange={setImageQuery} type='file' />
+          <SingleFileUpload setFileChange={setImageQuery} />
         )}
       </section>
       <hr className='border-1 border-slate-300 w-full' />
@@ -47,16 +57,25 @@ export default function Home() {
         <h2 className='font-poppins text-xl lg:text-2xl flex font-semibold'>
           Data set input
         </h2>
-        <div className='flex gap-7 max-sm:flex-col'>
-          <TextInput
-            input={link}
-            setInput={setLink}
-            placeHolder='Masukkan link web yang mau discrapping'
-          />
-          <Button color='gradient-bp' size='small' isRounded>
-            Get the data
-          </Button>
-        </div>
+        {imageData.length > 0 ? (
+          <GroupPagination imageUrls={imageData} itemsPerPage={6} />
+        ) : (
+          <div className='flex gap-7 max-sm:flex-col'>
+            <TextInput
+              input={link}
+              setInput={setLink}
+              placeHolder='Masukkan link web yang mau discrapping'
+            />
+            <Button
+              color='gradient-bp'
+              size='small'
+              isRounded
+              onClick={handleGetData}
+            >
+              Get the data
+            </Button>
+          </div>
+        )}
         <div className='flex items-center flex-wrap justify-center gap-4 py-4'>
           <p className='text-lg lg:text-2xl font-poppins font-semibold text-gold'>
             Other Input Query Option:

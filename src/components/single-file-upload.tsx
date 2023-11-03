@@ -15,11 +15,10 @@ import React, {
 } from 'react';
 interface SingleFileUploadProps {
   setFileChange: React.Dispatch<React.SetStateAction<File | null>>;
-  type: 'camera' | 'file' | 'scrapping';
 }
+
 const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
   setFileChange,
-  type,
 }) => {
   const [file, setFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -103,30 +102,6 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
     setImageUrl(null);
     localStorage.removeItem('imageUrl');
   };
-  const links = {
-    file: {
-      href: '/camera',
-      text: 'Use Camera',
-      altHref: '/scrapping',
-      altText: 'Use Scrapping',
-    },
-    camera: {
-      href: '/',
-      text: 'Use File',
-      altHref: '/scrapping',
-      altText: 'Use Scrapping',
-    },
-    scrapping: {
-      href: '/',
-      text: 'Use File',
-      altHref: '/camera',
-      altText: 'Use Camera',
-    },
-  };
-
-  const defaultType = 'file';
-
-  const link = links[type] || links[defaultType];
 
   return (
     <form onSubmit={handleSubmit}>

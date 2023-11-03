@@ -36,7 +36,7 @@ export default function Home() {
         {isCamera ? (
           <Camera onCapture={handleCapture}></Camera>
         ) : (
-          <SingleFileUpload setFileChange={setImageQuery} type='file' />
+          <SingleFileUpload setFileChange={setImageQuery} />
         )}
       </section>
       <hr className='border-1 border-slate-300 w-full' />

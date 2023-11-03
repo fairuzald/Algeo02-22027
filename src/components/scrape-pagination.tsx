@@ -3,14 +3,12 @@ import ImageResult from '@/components/image-result';
 import Pagination from '@/components/pagination';
 
 interface GroupPaginationProps {
-  files: File[];
   imageUrls: string[];
   itemsPerPage: number;
   percentages?: number[];
 }
 
 const GroupPagination: React.FC<GroupPaginationProps> = ({
-  files,
   imageUrls,
   percentages,
   itemsPerPage,
@@ -21,7 +19,7 @@ const GroupPagination: React.FC<GroupPaginationProps> = ({
   const endIndex = startIndex + itemsPerPage;
 
   // Get the files and image URLs for the current page
-  const currentFiles = files.slice(startIndex, endIndex);
+  const currentFiles = imageUrls.slice(startIndex, endIndex);
   const currentImageUrls = imageUrls.slice(startIndex, endIndex);
 
   return (
@@ -29,15 +27,15 @@ const GroupPagination: React.FC<GroupPaginationProps> = ({
       <div className='flex flex-wrap gap-5 lg:gap-6 items-center justify-center w-full min-h-[300]'>
         {currentImageUrls.map((imageUrl, index) => (
           <ImageResult
-            key={currentFiles[index]?.name}
+            key={currentFiles[index]}
             imageUrl={imageUrl}
-            imageTitle={currentFiles[index]?.name}
+            imageTitle={currentFiles[index]}
             percentage={percentages && percentages[index]}
           />
         ))}
       </div>
       <Pagination
-        numberPage={Math.ceil(files.length / itemsPerPage)}
+        numberPage={Math.ceil(imageUrls.length / itemsPerPage)}
         currentNumberPage={currentPage}
         setCurrentNumberPage={setCurrentPage}
       />
