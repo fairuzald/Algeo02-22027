@@ -38,11 +38,10 @@ export default function Home() {
   const [link, setLink] = useState<string>('');
   const handleGetData = async () => {
     // Send a GET request to the API with the link and limits as query parameters
-    if (!isSpecificLimits) {
-      setLimits(0);
-    }
     const response = await fetch(
-      `/api/scrape?url=${encodeURIComponent(link)}&limits=${limits}`
+      `/api/scrape?url=${encodeURIComponent(link)}&limits=${
+        isSpecificLimits ? limits : 0
+      }`
     );
     const data = await response.json();
     // Set the image data state variable
