@@ -32,12 +32,8 @@ export default function Home() {
   const [link, setLink] = useState<string>('');
   const handleGetData = async () => {
     // Send a GET request to the API with the link as a query parameter
-    const URL = process.env.NEXT_PUBLIC_VERCEL_URL
-      ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api`
-      : 'http://localhost:8000/api';
-    const response = await fetch(
-      `${URL}/api/scrape?url=${encodeURIComponent(link)}`
-    );
+
+    const response = await fetch(`/api/scrape?url=${encodeURIComponent(link)}`);
     const data = await response.json();
     setImageData(data);
   };

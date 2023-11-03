@@ -3,7 +3,7 @@ from typing import List
 from urllib.parse import urlparse, urlunparse
 from api.scraper import ImageScraper
 from fastapi.middleware.cors import CORSMiddleware
-app = FastAPI(docs_url="/api/docs", openapi_url="/api/openapi.json")
+app = FastAPI()
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -26,7 +26,7 @@ async def create_upload_files(files: List[UploadFile] = File(...)):
 
 scraper = ImageScraper()
 
-@app.get("/scrape")
+@app.get("/api/scrape")
 async def get_image_scrape(url: str):
     # Parse the URL query parameter
     parsed_url = urlparse(url)
