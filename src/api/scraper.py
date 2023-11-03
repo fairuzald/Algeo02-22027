@@ -25,7 +25,7 @@ class ImageScraper:
         driver.get(url)
 
         # Wait until all elements in the DOM are loaded
-        WebDriverWait(driver, 10).until(
+        WebDriverWait(driver, 3).until(
             EC.presence_of_all_elements_located((By.XPATH, "//body/*"))
         )
 
