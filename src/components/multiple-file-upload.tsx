@@ -1,8 +1,7 @@
-'use client';
+// Importing the necessary libraries and components
 import React, {
   useState,
   ChangeEvent,
-  FormEvent,
   useEffect,
   useRef,
   DragEvent,
@@ -10,19 +9,37 @@ import React, {
 import FileUploadEmpty from '@/components/icons/file-upload-empty-icon';
 import GroupPagination from '@/components/group-pagination';
 import Button from '@/components/button';
-import CustomLink from '@/components/custom-link';
+import { IMAGE_FORMAT } from '@/types/image-format';
+
+import { toast } from 'react-hot-toast';
+
+// Extending the InputHTMLAttributes interface to add directory and webkitdirectory properties
+declare module 'react' {
+  interface InputHTMLAttributes<T> extends HTMLAttributes<T> {
+    directory?: string;
+    webkitdirectory?: string;
+  }
+}
+
+// Interface for the component props
 interface MultipleFileUploadProps {
   setFileChange: React.Dispatch<React.SetStateAction<File[] | []>>;
+  setMatrixImages: React.Dispatch<React.SetStateAction<number[][][]>>;
 }
+
+// The MultipleFileUpload component
 const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
   setFileChange,
+  setMatrixImages,
 }) => {
+  // State variables for managing the files, image URLs, and matrix images
   const [files, setFiles] = useState<File[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const itemsPerPage = 6;
+  const hiddenFileInput = useRef<HTMLInputElement>(null);
 
+  // useEffect hook to create Data URLs for the selected files
   useEffect(() => {
-    // Create Data URLs for the selected files and set them as the image URLs
     if (files.length > 0) {
       const newImageUrls = files.map((file) => {
         const reader = new FileReader();
@@ -40,58 +57,96 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
     }
   }, [files]);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // if (files.length > 0) {
-    //   const formData = new FormData();
-    //   files.forEach((file) => {
-    //     formData.append('files', file);
-    //   });
-
-    //   const response = await fetch('/api/uploadfile/', {
-    //     method: 'POST',
-    //     body: formData,
-    //   });
-
-    //   const data = await response.json();
-    //   console.log(data);
-    // }
-  };
-
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+  // Function to handle file selection
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
-    if (selectedFiles.length > 0) {
-      setFiles(selectedFiles);
-      setFileChange(selectedFiles);
+    const imageFiles = selectedFiles.filter((file) =>
+      IMAGE_FORMAT.includes(file.type)
+    );
+
+    if (imageFiles.length > 0) {
+      setFiles(imageFiles);
+      setFileChange(imageFiles);
+
+      const formData = new FormData();
+      imageFiles.forEach((file) => {
+        formData.append('file', file);
+      });
+
+      // Use toast.promise to show loading, success, and error messages
+      await toast.promise(
+        // The promise to be tracked
+        fetch('/api/convert-multiple', {
+          method: 'POST',
+          body: formData,
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.matrices) {
+              setMatrixImages(data.matrices);
+            }
+          }),
+        // Object containing messages for different promise states
+        {
+          loading: 'Image processing....',
+          success: 'Image processing successful!',
+          error: 'Image processing failed!',
+        }
+      );
+    } else {
+      toast.error('Upload folder dengan ekstensi file png, jpg, atau jpeg');
     }
   };
 
-  const hiddenFileInput = useRef<HTMLInputElement>(null);
+  // Function to handle the click event on the file upload button
   const handleClick = () => {
     if (hiddenFileInput.current) {
       hiddenFileInput.current.click();
     }
   };
 
+  // Function to handle the drag over event on the dropzone
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
   };
 
-  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+  // Function to handle the file drop event on the dropzone
+  const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    const droppedFiles = Array.from(e.dataTransfer.files || []);
-    if (droppedFiles.length > 0) {
-      setFiles(droppedFiles);
+
+    const items = Array.from(e.dataTransfer.items || []);
+    const files = await Promise.all(
+      items.map(async (item) => {
+        if (item.kind === 'file') {
+          const file = item.getAsFile();
+          return file;
+        }
+      })
+    );
+
+    const imageFiles = files.filter(
+      (file): file is File => file != null && IMAGE_FORMAT.includes(file.type)
+    );
+
+    if (imageFiles && imageFiles.length > 0) {
+      setFiles(imageFiles);
+    } else {
+      toast.error('Upload folder dengan ekstensi file png, jpg, atau jpeg');
     }
   };
 
+  // Function to handle the delete event on the delete button
   const handleDelete = () => {
     setFiles([]);
     setImageUrls([]);
+    if (hiddenFileInput.current) {
+      hiddenFileInput.current.value = '';
+    }
   };
 
+  // Render the component
   return (
-    <form onSubmit={handleSubmit}>
+    <div>
       <section className='flex flex-col gap-7 items-center justify-center'>
         {imageUrls.length > 0 && files.length > 0 ? (
           <GroupPagination
@@ -136,18 +191,18 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
               )}
             </div>
           </div>
-
           <input
             ref={hiddenFileInput}
+            webkitdirectory=''
             type='file'
-            accept='image/*'
             multiple
+            accept='image/*'
             onChange={handleFileChange}
             className='hidden'
           />
         </div>
       </section>
-    </form>
+    </div>
   );
 };
 

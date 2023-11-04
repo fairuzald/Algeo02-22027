@@ -29,7 +29,7 @@ const GroupPagination: React.FC<GroupPaginationProps> = ({
       <div className='flex flex-wrap gap-5 lg:gap-6 items-center justify-center w-full min-h-[300]'>
         {currentImageUrls.map((imageUrl, index) => (
           <ImageResult
-            key={currentFiles[index]?.name}
+            key={currentFiles[index]?.name || index}
             imageUrl={imageUrl}
             imageTitle={currentFiles[index]?.name}
             percentage={percentages && percentages[index]}

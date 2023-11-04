@@ -1,8 +1,11 @@
-from fastapi import FastAPI, File, UploadFile, Query
+from fastapi import FastAPI, File, UploadFile
 from typing import List
 from urllib.parse import urlparse, urlunparse
 from api.scraper import ImageScraper
 from fastapi.middleware.cors import CORSMiddleware
+from PIL import Image
+import numpy as np
+import io
 
 app = FastAPI()
 # Add CORS middleware
@@ -19,13 +22,29 @@ app.add_middleware(
 def hello_world():
     return {"message": "Hello World"}
 
-
-@app.post("/api/uploadfiles/")
-async def create_upload_files(files: List[UploadFile] = File(...)):
-    for file in files:
-        with open(f"{file.filename}", "wb") as f:
-            f.write(file.file.read())
-    return {"filenames": [file.filename for file in files]}
+@app.post("/api/convert")
+async def convert(file: UploadFile = File(...)):
+    try:
+        contents = await file.read()
+        image = Image.open(io.BytesIO(contents))
+        matrix = np.array(image)
+        print(len(matrix))
+        return {"matrix": matrix.tolist()}
+    except Exception as e:
+        return {"error": str(e)}
+    
+@app.post("/api/convert-multiple")
+async def convert(file: List[UploadFile] = File(...)):
+    matrices = []
+    try:
+        for uploaded_file in file:
+            contents = await uploaded_file.read()
+            image = Image.open(io.BytesIO(contents))
+            matrix = np.array(image)
+            matrices.append(matrix.tolist())
+        return {"matrices": matrices}
+    except Exception as e:
+        return {"error": str(e)}
 
 
 scraper = ImageScraper()

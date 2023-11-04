@@ -1,78 +1,81 @@
-'use client';
+// Importing the necessary libraries and components
 import Button from '@/components/button';
 import CustomLink from '@/components/custom-link';
 import FileUploadEmpty from '@/components/icons/file-upload-empty-icon';
+import { IMAGE_FORMAT } from '@/types/image-format';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { type } from 'os';
 import React, {
   useState,
   ChangeEvent,
-  FormEvent,
   useEffect,
   useRef,
   DragEvent,
 } from 'react';
+import { toast } from 'react-hot-toast';
+
+// Interface for the component props
 interface SingleFileUploadProps {
   setFileChange: React.Dispatch<React.SetStateAction<File | null>>;
+  setImageMatrix: React.Dispatch<React.SetStateAction<number[][]>>;
 }
 
+// The SingleFileUpload component
 const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
   setFileChange,
+  setImageMatrix,
 }) => {
+  // State variables for managing the file and image URL
   const [file, setFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const pathname = usePathname();
-  useEffect(() => {
-    // Check if there is an image URL in the localStorage
-    const storedImageUrl = localStorage.getItem('imageUrl');
-    if (storedImageUrl) {
-      setImageUrl(storedImageUrl);
-    }
-    const storedFile = localStorage.getItem('fileData');
-    if (storedFile) {
-      setFile(JSON.parse(storedFile));
-    }
-  }, []);
 
   useEffect(() => {
-    // Create a Data URL for the selected file and set it as the image URL
+    // Jika file ada dan file merupakan instance dari File
     if (file && file instanceof File) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setImageUrl(base64String);
-        localStorage.setItem('imageUrl', base64String);
-        localStorage.setItem('fileData', JSON.stringify(file));
+      // Membuat URL Object dari file dan set sebagai image URL
+      const url = URL.createObjectURL(file);
+      setImageUrl(url);
+
+      // Membersihkan URL Object ketika komponen unmount atau file berubah
+      return () => {
+        URL.revokeObjectURL(url);
       };
-      reader.readAsDataURL(file);
     }
   }, [file]);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // if (file) {
-    //   const formData = new FormData();
-    //   formData.append('file', file);
-
-    //   const response = await fetch('/api/uploadfile/', {
-    //     method: 'POST',
-    //     body: formData,
-    //   });
-
-    //   const data = await response.json();
-    //   console.log(data);
-    // }
-  };
-
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
+
+    if (selectedFile && IMAGE_FORMAT.includes(selectedFile.type)) {
       setFile(selectedFile);
-      // Call the callback function with the selected file
       setFileChange(selectedFile);
+
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      // Use toast.promise to show loading, success, and error messages
+      await toast.promise(
+        // The promise to be tracked
+        fetch('/api/convert', {
+          method: 'POST',
+          body: formData,
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.matrix) {
+              setImageMatrix(data.matrix);
+            }
+          }),
+        // Object containing messages for different promise states
+        {
+          loading: 'Image processing...',
+          success: 'Image processing successful!',
+          error: 'Image processing failed!',
+        }
+      );
     } else {
-      // Call the callback function with null if no file is selected
+      toast.error('Upload file dengan ekstensi png, jpg, atau jpeg');
       setFileChange(null);
     }
   };
@@ -92,19 +95,22 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const droppedFile = e.dataTransfer.files?.[0];
-    if (droppedFile) {
+    if (droppedFile && IMAGE_FORMAT.includes(droppedFile.type)) {
       setFile(droppedFile);
+      setFileChange(droppedFile);
+    } else {
+      toast.error('Upload file dengan ekstensi png, jpg, atau jpeg');
     }
   };
 
   const handleDelete = () => {
     setFile(null);
     setImageUrl(null);
-    localStorage.removeItem('imageUrl');
   };
 
+  // Render the component
   return (
-    <form onSubmit={handleSubmit}>
+    <div>
       <div className='flex flex-col lg:flex-row gap-10 items-center lg:items-stretch justify-center'>
         {imageUrl && file ? (
           <div className='rounded-xl overflow-hidden'>
@@ -178,7 +184,7 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
           </CustomLink>
         </div>
       </div>
-    </form>
+    </div>
   );
 };
 
