@@ -16,6 +16,7 @@ export default function Home() {
   const [imageQuery, setImageQuery] = useState<File | null>(null);
   const [imageData, setImageData] = useState<ImageData[]>([]);
   const [isTexture, setIsTexture] = useState<boolean>(false);
+  const [imageMatrixQuery, setImageMatrixQuery] = useState<number[][]>([]);
   const [isSpecificLimits, setIsSpecificLimits] = useState<boolean>(false);
   const [limits, setLimits] = useState<number>(1);
   // Get the search parameters from the URL
@@ -58,7 +59,10 @@ export default function Home() {
         {isCamera ? (
           <Camera onCapture={handleCapture}></Camera>
         ) : (
-          <SingleFileUpload setFileChange={setImageQuery} />
+          <SingleFileUpload
+            setFileChange={setImageQuery}
+            setImageMatrix={setImageMatrixQuery}
+          />
         )}
       </section>
       <hr className='border-1 border-slate-300 w-full' />
