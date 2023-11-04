@@ -1,19 +1,22 @@
 'use client';
 import SingleFileUpload from '@/components/single-file-upload';
-import ImageResult from '@/components/image-result';
 import MultipleFileUpload from '@/components/multiple-file-upload';
 import Switch from '@/components/switch';
 import { useState } from 'react';
 import Button from '@/components/button';
 
-import { useParams, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Camera from '@/components/camera';
 import CustomLink from '@/components/custom-link';
 
 export default function Home() {
   const [imageQuery, setImageQuery] = useState<File | null>(null);
-  const [imageData, setImageData] = useState<File[]>([]);
+  const [imageMatrixQuery, setImageMatrixQuery] = useState<number[][]>([]);
+  const [imageDataSet, setImageDataSet] = useState<File[]>([]);
   const [isTexture, setIsTexture] = useState<boolean>(false);
+  const [imageMatrixDataSet, setImageMatrixDataSet] = useState<number[][][]>(
+    []
+  );
   const searchParams = useSearchParams();
   const isCamera = searchParams.get('camera') === 'true';
 
@@ -27,6 +30,12 @@ export default function Home() {
         setImageQuery(file);
       });
   };
+
+  console.log('Panjang array matrix dataset', imageMatrixDataSet.length);
+  console.log('Array dataset', imageMatrixDataSet);
+  console.log('Panjang matrix query', imageMatrixQuery.length);
+  console.log('Isi Array', imageMatrixQuery);
+
   return (
     <main className='flex gap-8 text-white lg:gap-10 min-h-screen flex-col py-20 px-8 sm:px-10 md:px-20 lg:px-40 bg-gradient-to-tr from-[#455976] via-[55%] via-[#2A182e]  to-[#8b3f25]'>
       <h1 className='font-poppins font-bold text-3xl lg:text-4xl tracking-wide text-center'>
@@ -36,7 +45,10 @@ export default function Home() {
         {isCamera ? (
           <Camera onCapture={handleCapture}></Camera>
         ) : (
-          <SingleFileUpload setFileChange={setImageQuery} />
+          <SingleFileUpload
+            setFileChange={setImageQuery}
+            setImageMatrix={setImageMatrixQuery}
+          />
         )}
       </section>
       <hr className='border-1 border-slate-300 w-full' />
@@ -44,7 +56,10 @@ export default function Home() {
         <h2 className='font-poppins text-xl lg:text-2xl flex font-semibold'>
           Data set input
         </h2>
-        <MultipleFileUpload setFileChange={setImageData} />
+        <MultipleFileUpload
+          setFileChange={setImageDataSet}
+          setMatrixImages={setImageMatrixDataSet}
+        />
         <div className='flex items-center flex-wrap justify-center gap-4 py-4'>
           <p className='text-lg lg:text-2xl font-poppins font-semibold text-gold'>
             Other Input Query Option:
@@ -70,7 +85,7 @@ export default function Home() {
             color='gradient-bp'
             size='small'
             isRounded
-            disabled={!imageQuery || !imageData || imageData.length <= 0}
+            disabled={!imageQuery || !imageDataSet || imageDataSet.length <= 0}
           >
             Start Processing
           </Button>

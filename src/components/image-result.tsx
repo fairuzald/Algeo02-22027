@@ -17,7 +17,7 @@ export default function ImageResult({
       >
         <Image
           src={imageUrl}
-          alt={imageTitle}
+          alt={imageTitle || 'Image'}
           width={1920}
           height={1020}
           className='w-full h-full object-cover object-center'

@@ -6,6 +6,7 @@ interface ButtonProps {
   children: React.ReactNode;
   onClick?: () => void;
   disabled?: boolean;
+  type?: 'submit' | 'button';
 }
 const Button: React.FC<ButtonProps> = ({
   color,
@@ -14,6 +15,7 @@ const Button: React.FC<ButtonProps> = ({
   children,
   onClick,
   disabled,
+  type,
 }) => {
   const sizeEffect = {
     small: 'py-2 px-8',
