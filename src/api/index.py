@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, Query
+from fastapi import FastAPI, File, UploadFile
 from typing import List
 from urllib.parse import urlparse, urlunparse
 from api.scraper import ImageScraper

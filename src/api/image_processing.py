@@ -1,5 +1,4 @@
 from typing import Dict, List
-import requests
 from urllib.parse import urljoin
 import os
 import cv2
