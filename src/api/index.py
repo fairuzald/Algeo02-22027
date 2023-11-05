@@ -1,11 +1,16 @@
-from fastapi import FastAPI, File, UploadFile
+import base64
+import cv2
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from typing import List
 from urllib.parse import urlparse, urlunparse
+import numpy as np
+from io import BytesIO
+from PIL import Image
+from pydantic import BaseModel
+import requests
 from api.scraper import ImageScraper
 from fastapi.middleware.cors import CORSMiddleware
-from PIL import Image
-import numpy as np
-import io
+from api.image_processing import ImageProcessing
 
 app = FastAPI()
 # Add CORS middleware
@@ -17,39 +22,28 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 
-
 @app.get("/api/python")
+
 def hello_world():
     return {"message": "Hello World"}
 
+imageProcessor = ImageProcessing()
+
 @app.post("/api/convert")
 async def convert(file: UploadFile = File(...)):
-    try:
-        contents = await file.read()
-        image = Image.open(io.BytesIO(contents))
-        matrix = np.array(image)
-        print(len(matrix))
-        return {"matrix": matrix.tolist()}
-    except Exception as e:
-        return {"error": str(e)}
-    
+    return await imageProcessor.convert(file)
+
 @app.post("/api/convert-multiple")
-async def convert(file: List[UploadFile] = File(...)):
-    matrices = []
-    try:
-        for uploaded_file in file:
-            contents = await uploaded_file.read()
-            image = Image.open(io.BytesIO(contents))
-            matrix = np.array(image)
-            matrices.append(matrix.tolist())
-        return {"matrices": matrices}
-    except Exception as e:
-        return {"error": str(e)}
+async def convert_multiple(files: List[UploadFile] = File(...)):
+    return await imageProcessor.convert_multiple(files)
 
-
+@app.post("/api/convert-camera")
+async def convert_camera(request: Request):
+    body = await request.json()
+    image_data = body.get("image_data")
+    return await imageProcessor.convert_camera(image_data)
+    
 scraper = ImageScraper()
-
-
 @app.get("/api/scrape")
 async def get_image_scrape(url: str, limits: int):
     # Parse the URL query parameter

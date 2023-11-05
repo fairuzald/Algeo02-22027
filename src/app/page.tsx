@@ -2,7 +2,7 @@
 import SingleFileUpload from '@/components/single-file-upload';
 import MultipleFileUpload from '@/components/multiple-file-upload';
 import Switch from '@/components/switch';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Button from '@/components/button';
 
 import { useSearchParams } from 'next/navigation';
@@ -17,25 +17,26 @@ export default function Home() {
   const [imageMatrixDataSet, setImageMatrixDataSet] = useState<number[][][]>(
     []
   );
+  const [imageQueryCam, setImageQueryCam] = useState<string>('');
   const searchParams = useSearchParams();
   const isCamera = searchParams.get('camera') === 'true';
 
-  const handleCapture = (dataUrl: string) => {
-    // Mengonversi data URL ke Blob
-    fetch(dataUrl)
-      .then((res) => res.blob())
-      .then((blob) => {
-        // Mengonversi Blob ke File
-        const file = new File([blob], 'Captured Image', { type: 'image/png' });
-        setImageQuery(file);
-      });
-  };
+  const memoizedImageMatrixDataSet = useMemo(() => {
+    return imageMatrixDataSet;
+  }, [imageMatrixDataSet]);
 
-  console.log('Panjang array matrix dataset', imageMatrixDataSet.length);
-  console.log('Array dataset', imageMatrixDataSet);
-  console.log('Panjang matrix query', imageMatrixQuery.length);
-  console.log('Isi Array', imageMatrixQuery);
+  const memoizedImageMatrixQuery = useMemo(() => {
+    return imageMatrixQuery;
+  }, [imageMatrixQuery]);
 
+  useEffect(() => {
+    console.log(
+      'Panjang array matrix dataset',
+      memoizedImageMatrixDataSet.length
+    );
+    console.log('Array dataset', memoizedImageMatrixDataSet);
+    console.log('Isi Query', memoizedImageMatrixQuery);
+  }, [memoizedImageMatrixDataSet, memoizedImageMatrixQuery]);
   return (
     <main className='flex gap-8 text-white lg:gap-10 min-h-screen flex-col py-20 px-8 sm:px-10 md:px-20 lg:px-40 bg-gradient-to-tr from-[#455976] via-[55%] via-[#2A182e]  to-[#8b3f25]'>
       <h1 className='font-poppins font-bold text-3xl lg:text-4xl tracking-wide text-center'>
@@ -43,9 +44,15 @@ export default function Home() {
       </h1>
       <section>
         {isCamera ? (
-          <Camera onCapture={handleCapture}></Camera>
+          <Camera
+            imageData={imageQueryCam}
+            setImageData={setImageQueryCam}
+            imageMatrix={imageMatrixQuery}
+            setImageMatrix={setImageMatrixQuery}
+          ></Camera>
         ) : (
           <SingleFileUpload
+            fileChange={imageQuery}
             setFileChange={setImageQuery}
             setImageMatrix={setImageMatrixQuery}
           />
@@ -57,7 +64,8 @@ export default function Home() {
           Data set input
         </h2>
         <MultipleFileUpload
-          setFileChange={setImageDataSet}
+          setFilesChange={setImageDataSet}
+          filesChange={imageDataSet}
           setMatrixImages={setImageMatrixDataSet}
         />
         <div className='flex items-center flex-wrap justify-center gap-4 py-4'>
