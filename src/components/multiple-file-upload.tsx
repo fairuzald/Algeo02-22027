@@ -76,8 +76,8 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
       makeApiRequest({
         body: formData,
         method: 'POST',
-        loadingMessage: 'Images processing...',
-        successMessage: 'Images processing successful!',
+        loadingMessage: 'Data set processing...',
+        successMessage: 'Data set processing successful!',
         endpoint: '/api/convert-multiple',
         onSuccess: (data) => {
           if (data.matrices) {

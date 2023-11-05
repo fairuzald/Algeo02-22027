@@ -1,9 +1,11 @@
+import base64
 import cv2
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from typing import List
 from urllib.parse import urlparse, urlunparse
 import numpy as np
-
+from io import BytesIO
+from PIL import Image
 from pydantic import BaseModel
 import requests
 from api.scraper import ImageScraper
@@ -26,14 +28,21 @@ def hello_world():
     return {"message": "Hello World"}
 
 imageProcessor = ImageProcessing()
+
 @app.post("/api/convert")
 async def convert(file: UploadFile = File(...)):
-    return imageProcessor.convert(file)
+    return await imageProcessor.convert(file)
 
 @app.post("/api/convert-multiple")
 async def convert_multiple(files: List[UploadFile] = File(...)):
-    return imageProcessor.convert_multiple(files)
+    return await imageProcessor.convert_multiple(files)
 
+@app.post("/api/convert-camera")
+async def convert_camera(request: Request):
+    body = await request.json()
+    image_data = body.get("image_data")
+    return await imageProcessor.convert_camera(image_data)
+    
 scraper = ImageScraper()
 @app.get("/api/scrape")
 async def get_image_scrape(url: str, limits: int):

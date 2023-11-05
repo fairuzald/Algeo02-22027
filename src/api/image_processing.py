@@ -1,3 +1,4 @@
+import base64
 from typing import Dict, List, Union
 import cv2
 from fastapi import UploadFile, HTTPException
@@ -7,11 +8,10 @@ import io
 from pydantic import BaseModel
 
 import requests
-
 class ImageProcessing:
-    def convert(self, file: UploadFile) -> Union[Dict[str, List[List[int]]], Dict[str, str]]:
+    async def convert(self, file: UploadFile) -> Union[Dict[str, List[List[int]]], Dict[str, str]]:
         try:
-            contents = file.file.read()
+            contents = await file.read()
             image = Image.open(io.BytesIO(contents))
             matrix = np.array(image)
             return {"matrix": matrix.tolist()}
@@ -22,11 +22,11 @@ class ImageProcessing:
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
-    def convert_multiple(self, files: List[UploadFile]) -> Union[Dict[str, List[List[List[int]]]], Dict[str, str]]:
+    async def convert_multiple(self, files: List[UploadFile]) -> Union[Dict[str, List[List[List[int]]]], Dict[str, str]]:
         matrices = []
         try:
             for uploaded_file in files:
-                contents = uploaded_file.file.read()
+                contents = await uploaded_file.read()
                 image = Image.open(io.BytesIO(contents))
                 matrix = np.array(image)
                 matrices.append(matrix.tolist())
@@ -41,7 +41,7 @@ class ImageProcessing:
     class ImageUrls(BaseModel):
         urls: List[str]
 
-    def url_to_matrix(self,url):
+    def url_to_matrix(self, url):
         response = requests.get(url, stream=True)
         if response.status_code != 200:
             raise HTTPException(status_code=400, detail="Failed to fetch image from URL")
@@ -60,12 +60,21 @@ class ImageProcessing:
         else:
             raise HTTPException(status_code=400, detail="Failed to convert image to matrix")
         
-    def convert_to_matrix(self,images: ImageUrls):
-        matrices = []
-        for url in images.urls:
-            try:
-                matrix = self.url_to_matrix(url)
-                matrices.append(matrix)
-            except HTTPException as e:
-                raise e
-        return {"matrices": matrices}
+    async def convert_camera(self, image_data: str) -> Dict[str, List[List[int]]]:
+        try:
+            if not image_data:
+                raise HTTPException(status_code=400, detail="Image data is empty")
+
+            if not image_data.startswith("data:image/png;base64,"):
+                raise HTTPException(status_code=422, detail="Invalid image data format")
+
+            img_str = image_data.split(",")[1]
+            img_bytes = base64.b64decode(img_str)
+            img = Image.open(io.BytesIO(img_bytes))
+            img_matrix = np.array(img)
+
+            return {"matrix": img_matrix.tolist()}
+        except HTTPException as e:
+            raise e
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))

@@ -51,13 +51,13 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
 
     if (selectedFile && IMAGE_FORMAT.includes(selectedFile.type)) {
       const formData = new FormData();
-      formData.append('files', selectedFile);
+      formData.append('file', selectedFile);
       // Make API request hadnling
       makeApiRequest({
         body: formData,
         method: 'POST',
-        loadingMessage: 'Image processing...',
-        successMessage: 'Image processing successful!',
+        loadingMessage: 'File image processing...',
+        successMessage: 'File image processing successful!',
         endpoint: '/api/convert',
         onSuccess: (data) => {
           if (data.matrix) {

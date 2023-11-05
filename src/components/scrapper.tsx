@@ -31,15 +31,14 @@ export const Scrapper: React.FC<ScrapperProps> = ({
   const handleGetData = async () => {
     makeApiRequest({
       method: 'GET',
-      loadingMessage: 'Get the images...',
-      successMessage: 'Get the images successful!',
+      loadingMessage: 'Get data set scrapping...',
+      successMessage: 'Get data set scrapping successful!',
       endpoint: `/api/scrape?url=${encodeURIComponent(link)}&limits=${
         isSpecificLimits ? limits : 0
       }`,
       onSuccess: (data: ImageDataWithMatrix[]) => {
         const nonMatrixData = data.map(({ matrix, ...rest }) => rest);
         const matrixData = data.map(({ matrix }) => matrix);
-
         setImageData(nonMatrixData as ImageDataType[]);
         setImageDataMatrix(matrixData);
       },
@@ -100,6 +99,7 @@ export const Scrapper: React.FC<ScrapperProps> = ({
             color='gradient-bp'
             onClick={() => {
               setImageData([]);
+              setImageDataMatrix([]);
             }}
           >
             Delete all data
