@@ -62,9 +62,10 @@ export default function Home() {
               body: JSON.stringify({ url: imageData.url }),
             });
             const data = await response.json();
-            return data.base64;
+            return data;
           })
         );
+        console.log(imageDataSetBase64);
 
         const data = {
           image_query: imageQueryBase64,

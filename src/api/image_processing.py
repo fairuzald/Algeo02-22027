@@ -78,3 +78,19 @@ class ImageProcessing:
             raise e
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+        
+    def url_to_base64(self, url):
+        response = requests.get(url)
+        if response.status_code == 200:
+            # If the request is successful, determine the image format
+            content_type = response.headers['Content-Type']
+            image_format = content_type.split('/')[-1]
+            
+            # Encode the binary content to base64
+            base64_string = base64.b64encode(response.content).decode('utf-8')
+            
+            # Return the base64 string with the format prefix
+            return f'data:image/{image_format};base64,{base64_string}'
+        else:
+            # If the request fails, return None or handle the error as desired
+            return None

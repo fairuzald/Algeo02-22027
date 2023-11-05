@@ -1,10 +1,9 @@
 import base64
 import os
 import cv2
-from fastapi import FastAPI, File, HTTPException, Request, UploadFile, APIRouter
+from fastapi import FastAPI, File,  Request, UploadFile, APIRouter
 from typing import List
 from urllib.parse import urlparse, urlunparse
-from fastapi.responses import StreamingResponse
 import numpy as np
 from io import BytesIO
 from PIL import Image
@@ -30,20 +29,12 @@ def hello_world():
     return {"message": "Hello World"}
 
 imageProcessor = ImageProcessing()
-class ImageUrl(BaseModel):
+class ConvertImageToBase64Request(BaseModel):
     url: str
 
 @app.post("/api/convert-image-to-base64")
-async def convert_image_to_base64(image_url: ImageUrl):
-    response = requests.get(image_url.url)
-    if response.status_code == 200:
-        image = Image.open(BytesIO(response.content))
-        buffered = BytesIO()
-        image.save(buffered, format="PNG")
-        base64_string = base64.b64encode(buffered.getvalue())
-        return {"base64": base64_string.decode("utf-8")}
-    else:
-        return {"base64": None}
+async def convert_image_to_base64(request: ConvertImageToBase64Request):
+    return imageProcessor.url_to_base64(request.url)
     
 @app.post("/api/convert")
 async def convert(file: UploadFile = File(...)):
