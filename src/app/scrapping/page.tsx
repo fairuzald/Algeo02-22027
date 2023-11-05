@@ -10,6 +10,7 @@ import Camera from '@/components/camera';
 import TextInput from '@/components/text-input';
 import GroupPagination, { ImageData } from '@/components/scrape-pagination';
 import { Scrapper } from '@/components/scrapper';
+import { makeApiRequest } from '@/lib/helper';
 
 export default function Home() {
   // Initialize state variables for image query, image data, texture option, specific limits, and limits count
@@ -43,6 +44,66 @@ export default function Home() {
     console.log('Array dataset', memoizedImageMatrixDataSet);
     console.log('Isi Query', memoizedImageMatrixQuery);
   }, [memoizedImageMatrixDataSet, memoizedImageMatrixQuery]);
+  const handleDownloadPDF = async () => {
+    try {
+      if (imageQuery && imageDataSet && imageDataSet.length > 0) {
+        // Convert the image query to a base64 string
+        const imageQueryBase64 = await toBase64(imageQuery);
+
+        // Convert the image URLs in the data set to base64 strings
+        const imageDataSetBase64 = await Promise.all(
+          imageDataSet.map(async (imageData) => {
+            // Fetch the image from the server-side and convert it to base64
+            const response = await fetch('/api/convert-image-to-base64', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ url: imageData.url }),
+            });
+            const data = await response.json();
+            return data.base64;
+          })
+        );
+
+        const data = {
+          image_query: imageQueryBase64,
+          image_data_set: imageDataSetBase64,
+        };
+
+        makeApiRequest({
+          body: JSON.stringify(data),
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          loadingMessage: 'Creating PDF...',
+          successMessage: 'PDF created successfully!',
+          endpoint: '/api/create-pdf-file',
+          onSuccess: (data) => {
+            // Download the PDF file
+            const pdfFilePath = data.file_path;
+            const link = document.createElement('a');
+            link.href = pdfFilePath;
+            link.download = 'output.pdf';
+            link.click();
+          },
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      // Handle the error as needed (e.g., show an error message to the user).
+    }
+  };
+
+  const toBase64 = (file: File) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+      reader.readAsDataURL(file);
+    });
+  };
 
   return (
     <main className='flex gap-8 text-white lg:gap-10 min-h-screen flex-col py-20 px-8 sm:px-10 md:px-20 lg:px-40 bg-gradient-to-tr from-[#455976] via-[55%] via-[#2A182e]  to-[#8b3f25]'>
@@ -98,6 +159,7 @@ export default function Home() {
             color='gradient-bp'
             size='small'
             isRounded
+            onClick={handleDownloadPDF}
             disabled={!imageQuery || !imageDataSet || imageDataSet.length <= 0}
           >
             Start Processing

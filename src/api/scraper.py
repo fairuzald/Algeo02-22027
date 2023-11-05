@@ -81,7 +81,6 @@ class ImageScraper:
                             absolute_url = urljoin(base_url, relative_url)
                         url_parts = urlsplit(absolute_url)
                         path = url_parts.path
-                        print(path)
                         file_extension = path.split(".")[-1].lower()
                         # Check if the file extension is allowed
                         if file_extension in {'jpeg', 'jpg', 'png', 'gif', 'bmp', 'tiff', 'webp'}:

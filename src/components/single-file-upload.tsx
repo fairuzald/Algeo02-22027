@@ -67,7 +67,7 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
         },
       });
     } else {
-      toast.error('Upload file dengan ekstensi png, jpg, atau jpeg');
+      toast.error('Upload file dengan ekstensi png atau jpeg');
       setFileChange(null);
     }
   };
