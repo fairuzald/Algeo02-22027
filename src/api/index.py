@@ -1,6 +1,11 @@
-from fastapi import FastAPI, File, UploadFile
+import cv2
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from typing import List
 from urllib.parse import urlparse, urlunparse
+import numpy as np
+
+from pydantic import BaseModel
+import requests
 from api.scraper import ImageScraper
 from fastapi.middleware.cors import CORSMiddleware
 from api.image_processing import ImageProcessing
@@ -29,9 +34,11 @@ async def convert(file: UploadFile = File(...)):
 async def convert_multiple(files: List[UploadFile] = File(...)):
     return imageProcessor.convert_multiple(files)
 
+@app.post("/api/convert-url")
+async def convert_to_matrix(images: imageProcessor.ImageUrls):
+    return imageProcessor.convert_to_matrix(images)
+
 scraper = ImageScraper()
-
-
 @app.get("/api/scrape")
 async def get_image_scrape(url: str, limits: int):
     # Parse the URL query parameter

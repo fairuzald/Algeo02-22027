@@ -3,6 +3,7 @@ import { toast } from 'react-hot-toast';
 interface ApiRequestOptions {
   body?: BodyInit;
   method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  headers?: HeadersInit;
   loadingMessage: string;
   successMessage: string;
   endpoint: string;
@@ -12,6 +13,7 @@ interface ApiRequestOptions {
 export async function makeApiRequest({
   body,
   method,
+  headers,
   loadingMessage,
   successMessage,
   endpoint,
@@ -21,6 +23,7 @@ export async function makeApiRequest({
     await toast.promise(
       fetch(endpoint, {
         method: method,
+        headers: headers,
         ...(method !== 'GET' ? { body: body } : {}),
       })
         .then(async (response) => {

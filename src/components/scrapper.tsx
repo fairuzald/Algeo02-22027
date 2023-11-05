@@ -25,6 +25,20 @@ export const Scrapper: React.FC<ScrapperProps> = ({
   const [limits, setLimits] = useState<number>(1);
   const [link, setLink] = useState<string>('');
 
+  const convertImagesToMatrix = () => {
+    makeApiRequest({
+      method: 'POST',
+      body: JSON.stringify({ urls: imageData.map((image) => image.url) }),
+      headers: { 'Content-Type': 'application/json' },
+      loadingMessage: 'Converting images to matrix...',
+      successMessage: 'Images converted to matrix successfully!',
+      endpoint: '/api/convert-url',
+      onSuccess: (data) => {
+        setImageDataMatrix(data.matrices);
+      },
+    });
+  };
+
   const handleGetData = async () => {
     makeApiRequest({
       method: 'GET',
@@ -43,7 +57,17 @@ export const Scrapper: React.FC<ScrapperProps> = ({
     <>
       {/* Display image data pagination component if there is image data, otherwise display data input form */}
       {imageData.length > 0 ? (
-        <GroupPagination imageUrls={imageData} itemsPerPage={6} />
+        <>
+          <GroupPagination imageUrls={imageData} itemsPerPage={6} />
+          <Button
+            color='gradient-bp'
+            size='small'
+            isRounded
+            onClick={() => convertImagesToMatrix()}
+          >
+            Get the data
+          </Button>
+        </>
       ) : (
         <div className='flex gap-7 flex-col'>
           {/* Text input for link */}
