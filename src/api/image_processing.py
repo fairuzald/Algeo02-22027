@@ -1,29 +1,35 @@
-from typing import Dict, List
-from urllib.parse import urljoin
-import os
-import cv2
+from typing import Dict, List, Union
+from fastapi import UploadFile, HTTPException
 import numpy as np
+from PIL import Image
+import io
 
 class ImageProcessing:
-    def upload_files(self, files: List[str]):
-        valid_extensions = ['.jpg', '.png', '.jpeg']
-        uploaded_files = []
+    def convert(self, file: UploadFile) -> Union[Dict[str, List[List[int]]], Dict[str, str]]:
+        try:
+            contents = file.file.read()
+            image = Image.open(io.BytesIO(contents))
+            matrix = np.array(image)
+            return {"matrix": matrix.tolist()}
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail="Error: File not found")
+        except ValueError:
+            raise HTTPException(status_code=422, detail="Error: Invalid file format")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
 
-        for file in files:
-            file_extension = os.path.splitext(file)[1].lower()
-            if file_extension in valid_extensions:
-                file_path = os.path.join(self.folder_path, file)
-                uploaded_files.append(file_path)
-                with open(file_path, 'wb') as f:
-                    f.write(files[file].read())
-        
-        return uploaded_files
-
-    def convert_images_to_matrix(self, image_files: List[str]) -> np.ndarray:
-        images = []
-
-        for image_file in image_files:
-            image = cv2.imread(image_file)
-            images.append(image)
-
-        return np.array(images)
+    def convert_multiple(self, files: List[UploadFile]) -> Union[Dict[str, List[List[List[int]]]], Dict[str, str]]:
+        matrices = []
+        try:
+            for uploaded_file in files:
+                contents = uploaded_file.file.read()
+                image = Image.open(io.BytesIO(contents))
+                matrix = np.array(image)
+                matrices.append(matrix.tolist())
+            return {"matrices": matrices}
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail="Error: File not found")
+        except ValueError:
+            raise HTTPException(status_code=422, detail="Error: Invalid file format")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))

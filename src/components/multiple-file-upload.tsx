@@ -12,6 +12,7 @@ import Button from '@/components/button';
 import { IMAGE_FORMAT } from '@/types/image-format';
 
 import { toast } from 'react-hot-toast';
+import { makeApiRequest } from '@/lib/helper';
 
 // Extending the InputHTMLAttributes interface to add directory and webkitdirectory properties
 declare module 'react' {
@@ -23,25 +24,26 @@ declare module 'react' {
 
 // Interface for the component props
 interface MultipleFileUploadProps {
-  setFileChange: React.Dispatch<React.SetStateAction<File[] | []>>;
+  setFilesChange: React.Dispatch<React.SetStateAction<File[] | []>>;
+  filesChange: File[] | [];
   setMatrixImages: React.Dispatch<React.SetStateAction<number[][][]>>;
 }
 
 // The MultipleFileUpload component
 const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
-  setFileChange,
+  setFilesChange,
+  filesChange,
   setMatrixImages,
 }) => {
-  // State variables for managing the files, image URLs, and matrix images
-  const [files, setFiles] = useState<File[]>([]);
+  // State variables for managing the filesChange, image URLs, and matrix images
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const itemsPerPage = 6;
   const hiddenFileInput = useRef<HTMLInputElement>(null);
 
-  // useEffect hook to create Data URLs for the selected files
+  // useEffect hook to create Data URLs for the selected filesChange
   useEffect(() => {
-    if (files.length > 0) {
-      const newImageUrls = files.map((file) => {
+    if (filesChange.length > 0) {
+      const newImageUrls = filesChange.map((file) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
         return new Promise<string>((resolve) => {
@@ -55,7 +57,7 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
         setImageUrls(results);
       });
     }
-  }, [files]);
+  }, [filesChange]);
 
   // Function to handle file selection
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -65,34 +67,25 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
     );
 
     if (imageFiles.length > 0) {
-      setFiles(imageFiles);
-      setFileChange(imageFiles);
-
       const formData = new FormData();
       imageFiles.forEach((file) => {
-        formData.append('file', file);
+        formData.append('files', file);
       });
 
-      // Use toast.promise to show loading, success, and error messages
-      await toast.promise(
-        // The promise to be tracked
-        fetch('/api/convert-multiple', {
-          method: 'POST',
-          body: formData,
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.matrices) {
-              setMatrixImages(data.matrices);
-            }
-          }),
-        // Object containing messages for different promise states
-        {
-          loading: 'Image processing....',
-          success: 'Image processing successful!',
-          error: 'Image processing failed!',
-        }
-      );
+      // Shoot api
+      makeApiRequest({
+        body: formData,
+        method: 'POST',
+        loadingMessage: 'Images processing...',
+        successMessage: 'Images processing successful!',
+        endpoint: '/api/convert-multiple',
+        onSuccess: (data) => {
+          if (data.matrices) {
+            setMatrixImages(data.matrices);
+            setFilesChange(imageFiles);
+          }
+        },
+      });
     } else {
       toast.error('Upload folder dengan ekstensi file png, jpg, atau jpeg');
     }
@@ -129,7 +122,7 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
     );
 
     if (imageFiles && imageFiles.length > 0) {
-      setFiles(imageFiles);
+      setFilesChange(imageFiles);
     } else {
       toast.error('Upload folder dengan ekstensi file png, jpg, atau jpeg');
     }
@@ -137,8 +130,9 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
 
   // Function to handle the delete event on the delete button
   const handleDelete = () => {
-    setFiles([]);
+    setFilesChange([]);
     setImageUrls([]);
+    setMatrixImages([]);
     if (hiddenFileInput.current) {
       hiddenFileInput.current.value = '';
     }
@@ -148,9 +142,9 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
   return (
     <div>
       <section className='flex flex-col gap-7 items-center justify-center'>
-        {imageUrls.length > 0 && files.length > 0 ? (
+        {imageUrls.length > 0 && filesChange.length > 0 ? (
           <GroupPagination
-            files={files}
+            files={filesChange}
             imageUrls={imageUrls}
             itemsPerPage={itemsPerPage}
           />
@@ -178,9 +172,9 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
           <div className='space-y-3'>
             <div className='flex gap-4'>
               <Button onClick={handleClick} size='medium' color='gradient-bp'>
-                Insert {files.length > 0 ? 'New ' : 'the'} Images
+                Insert {filesChange.length > 0 ? 'New ' : 'the'} Images
               </Button>
-              {files.length > 0 && (
+              {filesChange.length > 0 && (
                 <Button
                   onClick={handleDelete}
                   size='medium'

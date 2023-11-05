@@ -1,4 +1,5 @@
 from typing import Dict, List
+from fastapi import HTTPException
 import requests
 from urllib.parse import urljoin
 from selenium import webdriver
@@ -10,10 +11,20 @@ from bs4 import BeautifulSoup
 
 class ImageScraper:
     def _get_page(self, url: str) -> BeautifulSoup:
-        # Make a GET request to the URL and parse the page content
-        page = requests.get(url)
-        soup = BeautifulSoup(page.content, "html.parser")
-        return soup
+        try:
+            # Make a GET request to the URL and parse the page content
+            page = requests.get(url)
+            page.raise_for_status()  # Raise HTTPError for bad responses (4xx and 5xx)
+            soup = BeautifulSoup(page.content, "html.parser")
+            return soup
+        except requests.HTTPError as e:
+            status_code = e.response.status_code
+            if status_code == 404:
+                raise HTTPException(status_code=404, detail="Page not found")
+            elif status_code == 500:
+                raise HTTPException(status_code=500, detail="Something went wrong")
+            else:
+                raise HTTPException(status_code=422, detail=str(e))
 
     def _get_page_driver(self, url: str) -> BeautifulSoup:
         try:
@@ -38,13 +49,11 @@ class ImageScraper:
             return soup
 
         except Exception as e:
-            print(f"An error occurred: {e}")
-            return None
+            raise HTTPException(status_code=500, detail=str(e))
 
         finally:
             # Close the webdriver
             driver.quit()
-
 
     def get_image(self, url: str, limits: int = 0) -> List[Dict[str, str]]:
         base_url = url
@@ -52,12 +61,12 @@ class ImageScraper:
         page = self._get_page(base_url)
         # Find all image elements on the page, limited by the specified limits
         raw_image = page.find_all("img", limit=limits)
-        
-        if(len(raw_image)==0):
+
+        if len(raw_image) == 0:
             # If no images are found, try using the Selenium webdriver
             page = self._get_page_driver(base_url)
             raw_image = page.find_all("img", limit=limits)
-            
+
         # Initialize an empty list to store the image data
         lists = []
         # Initialize a counter for image titles without alt text

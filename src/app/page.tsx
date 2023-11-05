@@ -46,6 +46,7 @@ export default function Home() {
           <Camera onCapture={handleCapture}></Camera>
         ) : (
           <SingleFileUpload
+            fileChange={imageQuery}
             setFileChange={setImageQuery}
             setImageMatrix={setImageMatrixQuery}
           />
@@ -57,7 +58,8 @@ export default function Home() {
           Data set input
         </h2>
         <MultipleFileUpload
-          setFileChange={setImageDataSet}
+          setFilesChange={setImageDataSet}
+          filesChange={imageDataSet}
           setMatrixImages={setImageMatrixDataSet}
         />
         <div className='flex items-center flex-wrap justify-center gap-4 py-4'>

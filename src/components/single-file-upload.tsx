@@ -2,6 +2,7 @@
 import Button from '@/components/button';
 import CustomLink from '@/components/custom-link';
 import FileUploadEmpty from '@/components/icons/file-upload-empty-icon';
+import { makeApiRequest } from '@/lib/helper';
 import { IMAGE_FORMAT } from '@/types/image-format';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -17,63 +18,54 @@ import { toast } from 'react-hot-toast';
 // Interface for the component props
 interface SingleFileUploadProps {
   setFileChange: React.Dispatch<React.SetStateAction<File | null>>;
+  fileChange: File | null;
   setImageMatrix: React.Dispatch<React.SetStateAction<number[][]>>;
 }
 
 // The SingleFileUpload component
 const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
+  fileChange,
   setFileChange,
   setImageMatrix,
 }) => {
-  // State variables for managing the file and image URL
-  const [file, setFile] = useState<File | null>(null);
+  // State variables for managing the fileChange and image URL
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
-    // Jika file ada dan file merupakan instance dari File
-    if (file && file instanceof File) {
-      // Membuat URL Object dari file dan set sebagai image URL
-      const url = URL.createObjectURL(file);
+    // Jika fileChange ada dan fileChange merupakan instance dari File
+    if (fileChange && fileChange instanceof File) {
+      // Membuat URL Object dari fileChange dan set sebagai image URL
+      const url = URL.createObjectURL(fileChange);
       setImageUrl(url);
 
-      // Membersihkan URL Object ketika komponen unmount atau file berubah
+      // Membersihkan URL Object ketika komponen unmount atau fileChange berubah
       return () => {
         URL.revokeObjectURL(url);
       };
     }
-  }, [file]);
+  }, [fileChange]);
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
 
     if (selectedFile && IMAGE_FORMAT.includes(selectedFile.type)) {
-      setFile(selectedFile);
-      setFileChange(selectedFile);
-
       const formData = new FormData();
-      formData.append('file', selectedFile);
-
-      // Use toast.promise to show loading, success, and error messages
-      await toast.promise(
-        // The promise to be tracked
-        fetch('/api/convert', {
-          method: 'POST',
-          body: formData,
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.matrix) {
-              setImageMatrix(data.matrix);
-            }
-          }),
-        // Object containing messages for different promise states
-        {
-          loading: 'Image processing...',
-          success: 'Image processing successful!',
-          error: 'Image processing failed!',
-        }
-      );
+      formData.append('files', selectedFile);
+      // Make API request hadnling
+      makeApiRequest({
+        body: formData,
+        method: 'POST',
+        loadingMessage: 'Image processing...',
+        successMessage: 'Image processing successful!',
+        endpoint: '/api/convert',
+        onSuccess: (data) => {
+          if (data.matrix) {
+            setImageMatrix(data.matrix);
+            setFileChange(selectedFile);
+          }
+        },
+      });
     } else {
       toast.error('Upload file dengan ekstensi png, jpg, atau jpeg');
       setFileChange(null);
@@ -96,7 +88,6 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
     e.preventDefault();
     const droppedFile = e.dataTransfer.files?.[0];
     if (droppedFile && IMAGE_FORMAT.includes(droppedFile.type)) {
-      setFile(droppedFile);
       setFileChange(droppedFile);
     } else {
       toast.error('Upload file dengan ekstensi png, jpg, atau jpeg');
@@ -104,19 +95,19 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
   };
 
   const handleDelete = () => {
-    setFile(null);
+    setFileChange(null);
     setImageUrl(null);
+    setImageMatrix([]);
   };
-
   // Render the component
   return (
     <div>
       <div className='flex flex-col lg:flex-row gap-10 items-center lg:items-stretch justify-center'>
-        {imageUrl && file ? (
+        {imageUrl && fileChange ? (
           <div className='rounded-xl overflow-hidden'>
             <Image
               src={imageUrl}
-              alt={file.name ? file.name : 'Image Query'}
+              alt={fileChange.name ? fileChange.name : 'Image Query'}
               width={550}
               height={500}
               className='h-[250px] lg:h-[340px] w-full lg:w-[550px] object-contain rounded-xl'
@@ -147,12 +138,14 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
               Image Input
             </h2>
             <div className='space-y-3'>
-              <p className='text-white font-poppins text-lg'>{file?.name}</p>
+              <p className='text-white font-poppins text-lg'>
+                {fileChange?.name}
+              </p>
               <div className='flex gap-4'>
                 <Button onClick={handleClick} size='medium' color='gradient-bp'>
-                  Insert {file ? 'a New ' : 'an'} Image
+                  Insert {fileChange ? 'a New ' : 'an'} Image
                 </Button>
-                {file && (
+                {fileChange && (
                   <Button
                     onClick={handleDelete}
                     size='medium'
