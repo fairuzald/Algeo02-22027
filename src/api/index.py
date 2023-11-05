@@ -34,10 +34,6 @@ async def convert(file: UploadFile = File(...)):
 async def convert_multiple(files: List[UploadFile] = File(...)):
     return imageProcessor.convert_multiple(files)
 
-@app.post("/api/convert-url")
-async def convert_to_matrix(images: imageProcessor.ImageUrls):
-    return imageProcessor.convert_to_matrix(images)
-
 scraper = ImageScraper()
 @app.get("/api/scrape")
 async def get_image_scrape(url: str, limits: int):
