@@ -21,6 +21,9 @@ export default function Home() {
   const [imageQueryCam, setImageQueryCam] = useState<string>('');
   const searchParams = useSearchParams();
   const isCamera = searchParams.get('camera') === 'true';
+  const [resultPercentages, setResultPercentages] = useState<number[]>(
+    imageDataSet.map((_, index) => (index + 1) * 10)
+  );
 
   const memoizedImageMatrixDataSet = useMemo(() => {
     return imageMatrixDataSet;
@@ -39,6 +42,10 @@ export default function Home() {
     console.log('Isi Query', memoizedImageMatrixQuery);
   }, [memoizedImageMatrixDataSet, memoizedImageMatrixQuery]);
 
+  useEffect(() => {
+    setResultPercentages(imageDataSet.map((_, index) => (index + 1) * 10));
+  }, [imageDataSet]);
+
   const handleDownloadPDF = async () => {
     if (imageQuery && imageDataSet && imageDataSet.length > 0) {
       const imageQueryBase64 = await toBase64(imageQuery);
@@ -49,6 +56,9 @@ export default function Home() {
       const data = {
         image_query: isCamera ? imageQueryCam : imageQueryBase64,
         image_data_set: imageDataSetBase64,
+        is_texture: isTexture,
+        result_percentage_set: resultPercentages,
+        output_filename: 'output2',
       };
 
       makeApiRequest({
