@@ -22,6 +22,7 @@ export default function Home() {
   const [imageDataSetMatrix, setImageDataSetMatrix] = useState<number[][][]>(
     []
   );
+  const [outputFileName, setOutputFileName] = useState<string>('');
 
   // Get the search parameters from the URL
   const searchParams = useSearchParams();
@@ -44,59 +45,14 @@ export default function Home() {
     console.log('Array dataset', memoizedImageMatrixDataSet);
     console.log('Isi Query', memoizedImageMatrixQuery);
   }, [memoizedImageMatrixDataSet, memoizedImageMatrixQuery]);
-  const handleDownloadPDF = async () => {
-    try {
-      if (imageQuery && imageDataSet && imageDataSet.length > 0) {
-        // Convert the image query to a base64 string
-        const imageQueryBase64 = await toBase64(imageQuery);
 
-        // Convert the image URLs in the data set to base64 strings
-        const imageDataSetBase64 = await Promise.all(
-          imageDataSet.map(async (imageData) => {
-            // Fetch the image from the server-side and convert it to base64
-            const response = await fetch('/api/convert-image-to-base64', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ url: imageData.url }),
-            });
-            const data = await response.json();
-            return data;
-          })
-        );
-        console.log(imageDataSetBase64);
+  const [resultPercentages, setResultPercentages] = useState<number[]>(
+    imageDataSet.map((_, index) => (index + 1) * 10)
+  );
 
-        const data = {
-          image_query: imageQueryBase64,
-          image_data_set: imageDataSetBase64,
-        };
-
-        makeApiRequest({
-          body: JSON.stringify(data),
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          loadingMessage: 'Creating PDF...',
-          successMessage: 'PDF created successfully!',
-          endpoint: '/api/create-pdf-file',
-          onSuccess: (data) => {
-            // Download the PDF file
-            const pdfFilePath = data.file_path;
-            const link = document.createElement('a');
-            link.href = pdfFilePath;
-            link.download = 'output.pdf';
-            link.click();
-          },
-        });
-      }
-    } catch (error) {
-      console.error(error);
-      // Handle the error as needed (e.g., show an error message to the user).
-    }
-  };
-
+  useEffect(() => {
+    setResultPercentages(imageDataSet.map((_, index) => (index + 1) * 10));
+  }, [imageDataSet]);
   const toBase64 = (file: File) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -104,6 +60,56 @@ export default function Home() {
       reader.onerror = (error) => reject(error);
       reader.readAsDataURL(file);
     });
+  };
+  const handleDownloadPDF = async () => {
+    if (imageQuery && imageDataSet && imageDataSet.length > 0) {
+      // Convert the image query to a base64 string
+      const imageQueryBase64 = await toBase64(imageQuery);
+
+      // Convert the image URLs in the data set to base64 strings
+      const imageDataSetBase64 = await Promise.all(
+        imageDataSet.map(async (imageData) => {
+          // Fetch the image from the server-side and convert it to base64
+          const response = await fetch('/api/convert-image-to-base64', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ url: imageData.url }),
+          });
+          const data = await response.json();
+          return data;
+        })
+      );
+      console.log(imageDataSetBase64);
+
+      const data = {
+        image_query: isCamera ? imageQueryCam : imageQueryBase64,
+        image_data_set: imageDataSetBase64,
+        is_texture: isTexture,
+        result_percentage_set: resultPercentages,
+        output_filename: outputFileName,
+      };
+
+      makeApiRequest({
+        body: JSON.stringify(data),
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        loadingMessage: 'Creating PDF...',
+        successMessage: 'PDF created successfully!',
+        endpoint: '/api/create-pdf-file',
+        onSuccess: (data) => {
+          // Download the PDF file
+          const pdfFilePath = data.file_path;
+          const link = document.createElement('a');
+          link.href = pdfFilePath;
+          link.download = `${outputFileName}.pdf`;
+          link.click();
+        },
+      });
+    }
   };
 
   return (
@@ -164,6 +170,34 @@ export default function Home() {
             disabled={!imageQuery || !imageDataSet || imageDataSet.length <= 0}
           >
             Start Processing
+          </Button>
+        </div>
+      </section>
+      <hr className='border-1 border-slate-300 w-full' />
+      <section className='flex max-md:flex-col  w-full gap-4'>
+        <h2 className='font-poppins text-xl lg:text-2xl flex font-semibold '>
+          Output File:
+        </h2>
+        <div className='flex justify-center max-lg:flex-col flex-wrap flex-1 max-lg:w-full  max-sm  gap-5 lg:gap-10'>
+          <TextInput
+            input={outputFileName}
+            setInput={setOutputFileName}
+            placeHolder='Masukkan nama file output'
+            type='text'
+          />
+          <Button
+            color='gradient-bp'
+            size='small'
+            isRounded
+            onClick={handleDownloadPDF}
+            disabled={
+              !imageQuery ||
+              !imageDataSet ||
+              imageDataSet.length <= 0 ||
+              !outputFileName
+            }
+          >
+            Download Report
           </Button>
         </div>
       </section>

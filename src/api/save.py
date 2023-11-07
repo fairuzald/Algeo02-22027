@@ -24,11 +24,12 @@ class PDFCreator:
         image_obj = Image.open(image_file)
         img_w, img_h = image_obj.size
         return image_file, img_w, img_h
+    
     def watermark(self, pdf):
         pdf.set_text_color(200, 200, 200)  # Setel warna abu-abu
         pdf.set_font("Arial", style='B', size=50)
         pdf.rotate(45)
-        pdf.text(0, pdf.h / 2, "CUKURUKUK")  # Posisi watermark di tengah halaman
+        pdf.text(-pdf.w/4, pdf.h / 2, "CUKURUKUK")  # Posisi watermark di tengah halaman
         pdf.rotate(-45)
         pdf.set_text_color(0, 0, 0)  # Kembalikan ke warna hitam
         pdf.rotate(0)
@@ -42,7 +43,7 @@ class PDFCreator:
         img_w = int(img_w * scale_factor)
         img_h = int(img_h * scale_factor)
         pdf.image(image_file, x=10, y=pdf.get_y(), w=img_w, h=img_h)
-        pdf.ln(img_h + 10)
+        pdf.ln(img_h)
         return img_w, img_h
 
     def create_pdf(self, data: dict):
@@ -57,25 +58,26 @@ class PDFCreator:
 
         # Menambahkan metode
         metode = "Texture" if is_texture else "Color"
+        pdf.set_font("Arial", style='B', size=28)
+        pdf.cell(200, 25, txt=f"Report Cukurukuk CBIR", ln=True, align='C')
+        pdf.set_font("Arial", style='B', size=20)
         pdf.cell(200, 10, txt=f"Metode: {metode}", ln=True, align='C')
-        pdf.ln(10)
-
-        pdf.cell(200, 10, txt="Image Query", ln=True, align='C')
-        pdf.ln(10)
+        pdf.cell(200, 10, txt="Image Query: ", ln=True, align='C')
 
         image_query_file, img_w, img_h = self.process_image(image_query, "image_query.png")
         img_w, img_h = self.add_image_to_pdf(pdf, image_query_file, img_w, img_h)
 
         pdf.cell(200, 10, txt="Data Set:", ln=True, align='C')
-        pdf.ln(10)
+        pdf.set_font("Arial", size=12)
         for index, (image_data, result_percentage) in enumerate(zip(image_data_set, result_percentage_set)):
             image_data_file, img_w, img_h = self.process_image(image_data, f"image_data_{index}.png")
             img_w, img_h = self.add_image_to_pdf(pdf, image_data_file, img_w, img_h)
-            pdf.cell(200, 10, txt=f"Persentase: {result_percentage}%", ln=True)
+            pdf.cell(200, 20, txt=f"Persentase: {result_percentage}%", ln=True)
 
             if pdf.get_y() + img_h > pdf.page_break_trigger:
                 pdf.add_page()
                 self.watermark(pdf)
+            
 
         pdf_file_dir = "../test/output/"
         if not os.path.exists(pdf_file_dir):

@@ -9,21 +9,30 @@ import { useSearchParams } from 'next/navigation';
 import Camera from '@/components/camera';
 import CustomLink from '@/components/custom-link';
 import { makeApiRequest } from '@/lib/helper';
+import TextInput from '@/components/text-input';
 
 export default function Home() {
+  // Image Query Data
   const [imageQuery, setImageQuery] = useState<File | null>(null);
   const [imageMatrixQuery, setImageMatrixQuery] = useState<number[][]>([]);
+  const [imageQueryCam, setImageQueryCam] = useState<string>('');
+
+  // Image Data Set
   const [imageDataSet, setImageDataSet] = useState<File[]>([]);
-  const [isTexture, setIsTexture] = useState<boolean>(false);
   const [imageMatrixDataSet, setImageMatrixDataSet] = useState<number[][][]>(
     []
   );
-  const [imageQueryCam, setImageQueryCam] = useState<string>('');
-  const searchParams = useSearchParams();
-  const isCamera = searchParams.get('camera') === 'true';
+
+  // Result Percentage
   const [resultPercentages, setResultPercentages] = useState<number[]>(
     imageDataSet.map((_, index) => (index + 1) * 10)
   );
+
+  // Feature State
+  const [isTexture, setIsTexture] = useState<boolean>(false);
+  const searchParams = useSearchParams();
+  const isCamera = searchParams.get('camera') === 'true';
+  const [outputFileName, setOutputFileName] = useState<string>('');
 
   const memoizedImageMatrixDataSet = useMemo(() => {
     return imageMatrixDataSet;
@@ -58,7 +67,7 @@ export default function Home() {
         image_data_set: imageDataSetBase64,
         is_texture: isTexture,
         result_percentage_set: resultPercentages,
-        output_filename: 'output2',
+        output_filename: outputFileName,
       };
 
       makeApiRequest({
@@ -75,7 +84,7 @@ export default function Home() {
           const pdfFilePath = data.file_path;
           const link = document.createElement('a');
           link.href = pdfFilePath;
-          link.download = 'output.pdf';
+          link.download = `${outputFileName}.pdf`;
           link.click();
         },
       });
@@ -147,10 +156,37 @@ export default function Home() {
             color='gradient-bp'
             size='small'
             isRounded
-            onClick={handleDownloadPDF}
             disabled={!imageQuery || !imageDataSet || imageDataSet.length <= 0}
           >
             Start Processing
+          </Button>
+        </div>
+      </section>
+      <hr className='border-1 border-slate-300 w-full' />
+      <section className='flex max-md:flex-col  w-full gap-4'>
+        <h2 className='font-poppins text-xl lg:text-2xl flex font-semibold '>
+          Output File:
+        </h2>
+        <div className='flex justify-center max-lg:flex-col flex-wrap flex-1 max-lg:w-full  max-sm  gap-5 lg:gap-10'>
+          <TextInput
+            input={outputFileName}
+            setInput={setOutputFileName}
+            placeHolder='Masukkan nama file output'
+            type='text'
+          />
+          <Button
+            color='gradient-bp'
+            size='small'
+            isRounded
+            onClick={handleDownloadPDF}
+            disabled={
+              !imageQuery ||
+              !imageDataSet ||
+              imageDataSet.length <= 0 ||
+              !outputFileName
+            }
+          >
+            Download Report
           </Button>
         </div>
       </section>

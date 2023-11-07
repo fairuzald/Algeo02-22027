@@ -71,6 +71,7 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
       imageFiles.forEach((file) => {
         formData.append('files', file);
       });
+      setFilesChange(imageFiles);
 
       // Shoot api
       makeApiRequest({
@@ -82,7 +83,6 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
         onSuccess: (data) => {
           if (data.matrices) {
             setMatrixImages(data.matrices);
-            setFilesChange(imageFiles);
           }
         },
       });
