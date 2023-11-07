@@ -1,6 +1,5 @@
 from PIL import Image
 import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
 
 def rgb_to_hsv(r, g, b):
     # konversi RGB ke rentang 0-1
@@ -27,11 +26,9 @@ def rgb_to_hsv(r, g, b):
 
     return h, s, v
 
-def compute_global_color_histogram_hsv(image, num_bins=72):
+def compute_global_color_histogram_hsv(image, num_bins=8):
     width, height = image.size
-    hist_h = np.zeros((num_bins,))
-    hist_s = np.zeros((num_bins,))
-    hist_v = np.zeros((num_bins,))
+    hist = np.zeros((8, 3, 3))
 
     for y in range(height):
         for x in range(width):
@@ -41,34 +38,68 @@ def compute_global_color_histogram_hsv(image, num_bins=72):
             # konversi RGB ke HSV
             hsv = rgb_to_hsv(*pixel[:3])
 
-            # hitung bin untuk setiap komponen HSV
-            bin_h = int(hsv[0] / 360 * num_bins)
-            bin_s = int(hsv[1] * (num_bins - 1))
-            bin_v = int(hsv[2] * (num_bins - 1))
+            # initialize bin_s, bin_h, bin_v with default values
+            bin_s, bin_h, bin_v = 0, 0, 0
+
+            # hitung bin untuk komponen H
+            if 1 <= hsv[0] < 25.5:
+                bin_h = 1
+            elif 25.5 <= hsv[0] < 40.5:
+                bin_h = 2
+            elif 40.5 <= hsv[0] < 120.5:
+                bin_h = 3
+            elif 120.5 <= hsv[0] < 190.5:
+                bin_h = 4
+            elif 190.5 <= hsv[0] < 270.5:
+                bin_h = 5
+            elif 270.5 <= hsv[0] < 295.5:
+                bin_h = 6
+            elif 295.5 <= hsv[0] < 316.5:
+                bin_h = 7
+            elif 316.5 <= hsv[0] < 360:
+                bin_h = 0
+
+            # hitung bin untuk komponen S
+            if 0 <= hsv[1] < 0.2:
+                bin_s = 0
+            elif 0.2 <= hsv[1] < 0.7:
+                bin_s = 1
+            elif 0.7 <= hsv[1] <= 1:
+                bin_s = 2
+
+            # hitung bin untuk komponen V
+            if 0 <= hsv[2] < 0.2:
+                bin_v = 0
+            elif 0.2 <= hsv[2] < 0.7:
+                bin_v = 1
+            elif 0.7 <= hsv[2] <= 1:
+                bin_v = 2
 
             # tambahkan ke histogram
-            hist_h[bin_h] += 1
-            hist_s[bin_s] += 1
-            hist_v[bin_v] += 1
-
-    # gabung histogram menjadi satu vektor
-    hist = np.concatenate([hist_h, hist_s, hist_v])
-    
-    # normalisasi histogram
-    hist = hist / np.sum(hist)
+            hist[bin_h][bin_s][bin_v] += 1
 
     return hist
 
-def compare_images(input_histogram, dataset_histograms, threshold=0.7):
-    # reshape input histogram menjadi 2D array
-    input_histogram = input_histogram.reshape(1, -1)
+def cosine_similarity_custom(vec1, vec2):
+    return np.dot(vec1, vec2)/(np.linalg.norm(vec1) * np.linalg.norm(vec2))
 
-    # hitung cosine similarity antara input histogram dengan dataset histogram
-    similarities = cosine_similarity(input_histogram, dataset_histograms)
+def compare_images(input_histogram, dataset_histograms):
+    # Flatten the input histogram
+    input_histogram = input_histogram.flatten()
 
-    # tampilkan hasil
-    for i, similarity in enumerate(similarities[0]):
-        print(f"Kemiripan dengan gambar {i + 1}: {similarity * 100:.2f} %")
+    # Flatten the dataset histograms
+    dataset_histograms = [hist.flatten() for hist in dataset_histograms]
+
+    # Calculate cosine similarity
+    similarities = [cosine_similarity_custom(input_histogram, hist) for hist in dataset_histograms]
+
+    # Display results
+    for i, similarity in enumerate(similarities):
+
+        if float(similarity) >= 0.6:
+            print(f"Similarity with image {i + 1}: {float(similarity):.2f} (Good Image)")
+        else:
+            print(f"Similarity with image {i + 1}: {float(similarity):.2f} (Not Good)")
 
 def main():
     # input gambar
@@ -79,7 +110,9 @@ def main():
     input_histogram = compute_global_color_histogram_hsv(input_image)
 
     # dataset gambar
-    dataset_image_paths = ["0_1.jpg", "0_2.jpg", "0_3.jpg", "1.jpg", "2.jpg", "3.jpg", "4.jpg", "5.jpg", "6.jpg", "black-color.jpg", "blue-color.jpg", "11(1).jpg", "dummy_image.png"]
+    dataset_folder_path = "img"
+    num_dataset_images = 100
+    dataset_image_paths = [f"{dataset_folder_path}/{i}.jpg" for i in range(0, num_dataset_images + 1)]
     dataset_histograms = []
 
     for dataset_image_path in dataset_image_paths:
@@ -88,7 +121,7 @@ def main():
         dataset_histograms.append(dataset_histogram)
 
     # bandingkan input gambar dengan dataset
-    compare_images(input_histogram, np.array(dataset_histograms), threshold=0.7)
+    compare_images(input_histogram, dataset_histograms)
 
 if __name__ == "__main__":
     main()
