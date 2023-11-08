@@ -17,34 +17,20 @@ import { toast } from 'react-hot-toast';
 
 // Interface for the component props
 interface SingleFileUploadProps {
-  setFileChange: React.Dispatch<React.SetStateAction<File | null>>;
-  fileChange: File | null;
+  setImageBase64: React.Dispatch<React.SetStateAction<string>>;
+  imageBase64: string;
   setImageMatrix: React.Dispatch<React.SetStateAction<number[][]>>;
 }
 
 // The SingleFileUpload component
 const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
-  fileChange,
-  setFileChange,
+  imageBase64,
+  setImageBase64,
   setImageMatrix,
 }) => {
   // State variables for managing the fileChange and image URL
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const pathname = usePathname();
-
-  useEffect(() => {
-    // Jika fileChange ada dan fileChange merupakan instance dari File
-    if (fileChange && fileChange instanceof File) {
-      // Membuat URL Object dari fileChange dan set sebagai image URL
-      const url = URL.createObjectURL(fileChange);
-      setImageUrl(url);
-
-      // Membersihkan URL Object ketika komponen unmount atau fileChange berubah
-      return () => {
-        URL.revokeObjectURL(url);
-      };
-    }
-  }, [fileChange]);
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -60,15 +46,18 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
         successMessage: 'File image processing successful!',
         endpoint: '/api/convert',
         onSuccess: (data) => {
+          setImageFile(selectedFile);
           if (data.matrix) {
             setImageMatrix(data.matrix);
-            setFileChange(selectedFile);
+          }
+          if (data.base64) {
+            setImageBase64(data.base64);
           }
         },
       });
     } else {
       toast.error('Upload file dengan ekstensi png atau jpeg');
-      setFileChange(null);
+      setImageFile(null);
     }
   };
 
@@ -88,26 +77,27 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
     e.preventDefault();
     const droppedFile = e.dataTransfer.files?.[0];
     if (droppedFile && IMAGE_FORMAT.includes(droppedFile.type)) {
-      setFileChange(droppedFile);
+      setImageFile(droppedFile);
     } else {
       toast.error('Upload file dengan ekstensi png, jpg, atau jpeg');
     }
   };
 
   const handleDelete = () => {
-    setFileChange(null);
-    setImageUrl(null);
+    setImageFile(null);
+    setImageBase64('');
     setImageMatrix([]);
   };
+  console.log('ini base', imageBase64, 'ini file', imageFile);
   // Render the component
   return (
     <div>
       <div className='flex flex-col lg:flex-row gap-10 items-center lg:items-stretch justify-center'>
-        {imageUrl && fileChange ? (
+        {imageBase64 && imageFile ? (
           <div className='rounded-xl overflow-hidden'>
             <Image
-              src={imageUrl}
-              alt={fileChange.name ? fileChange.name : 'Image Query'}
+              src={imageBase64}
+              alt={imageFile.name ? imageFile.name : 'Image Query'}
               width={550}
               height={500}
               className='h-[250px] lg:h-[340px] w-full lg:w-[550px] object-contain rounded-xl'
@@ -139,13 +129,13 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
             </h2>
             <div className='space-y-3'>
               <p className='text-white font-poppins text-lg'>
-                {fileChange?.name}
+                {imageFile?.name}
               </p>
               <div className='flex gap-4'>
                 <Button onClick={handleClick} size='medium' color='gradient-bp'>
-                  Insert {fileChange ? 'a New ' : 'an'} Image
+                  Insert {imageFile ? 'a New ' : 'an'} Image
                 </Button>
-                {fileChange && (
+                {imageFile && (
                   <Button
                     onClick={handleDelete}
                     size='medium'

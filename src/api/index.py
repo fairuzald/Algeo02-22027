@@ -1,17 +1,23 @@
 import base64
-from io import BytesIO
-import os
-from fastapi import FastAPI, File,  Request, UploadFile, APIRouter
+from typing import Dict
+from typing import Union
+import io
+import cv2
+from fastapi import FastAPI, File,  Request, UploadFile
 from typing import List
 from urllib.parse import urlparse, urlunparse
-from fpdf import FPDF
+from fastapi.responses import StreamingResponse
+import numpy as np
 from pydantic import BaseModel
+from api.object_detector import ObjectDetector
 from api.scraper import ImageScraper
 from fastapi.middleware.cors import CORSMiddleware
-from PIL import Image
 from api.image_processing import ImageProcessing
 from api.save import PDFCreator
+from PIL import Image
+
 app = FastAPI()
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -28,11 +34,11 @@ def hello_world():
 
 imageProcessor = ImageProcessing()
 class ConvertImageToBase64Request(BaseModel):
-    url: str
+    urls: List[str]
 
 @app.post("/api/convert-image-to-base64")
 async def convert_image_to_base64(request: ConvertImageToBase64Request):
-    return imageProcessor.url_to_base64(request.url)
+    return await imageProcessor.url_to_base64(request.urls)
     
 @app.post("/api/convert")
 async def convert(file: UploadFile = File(...)):

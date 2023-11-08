@@ -1,11 +1,5 @@
 // Importing the necessary libraries and components
-import React, {
-  useState,
-  ChangeEvent,
-  useEffect,
-  useRef,
-  DragEvent,
-} from 'react';
+import React, { useState, ChangeEvent, useRef, DragEvent } from 'react';
 import FileUploadEmpty from '@/components/icons/file-upload-empty-icon';
 import GroupPagination from '@/components/group-pagination';
 import Button from '@/components/button';
@@ -24,40 +18,21 @@ declare module 'react' {
 
 // Interface for the component props
 interface MultipleFileUploadProps {
-  setFilesChange: React.Dispatch<React.SetStateAction<File[] | []>>;
-  filesChange: File[] | [];
+  setImageBase64s: React.Dispatch<React.SetStateAction<string[]>>;
+  imageBase64s: string[];
   setMatrixImages: React.Dispatch<React.SetStateAction<number[][][]>>;
 }
 
 // The MultipleFileUpload component
 const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
-  setFilesChange,
-  filesChange,
+  setImageBase64s,
+  imageBase64s,
   setMatrixImages,
 }) => {
   // State variables for managing the filesChange, image URLs, and matrix images
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const itemsPerPage = 6;
   const hiddenFileInput = useRef<HTMLInputElement>(null);
-
-  // useEffect hook to create Data URLs for the selected filesChange
-  useEffect(() => {
-    if (filesChange.length > 0) {
-      const newImageUrls = filesChange.map((file) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        return new Promise<string>((resolve) => {
-          reader.onloadend = () => {
-            resolve(reader.result as string);
-          };
-        });
-      });
-
-      Promise.all(newImageUrls).then((results) => {
-        setImageUrls(results);
-      });
-    }
-  }, [filesChange]);
 
   // Function to handle file selection
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -65,13 +40,11 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
     const imageFiles = selectedFiles.filter((file) =>
       IMAGE_FORMAT.includes(file.type)
     );
-
     if (imageFiles.length > 0) {
       const formData = new FormData();
       imageFiles.forEach((file) => {
         formData.append('files', file);
       });
-      setFilesChange(imageFiles);
 
       // Shoot api
       makeApiRequest({
@@ -81,8 +54,12 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
         successMessage: 'Data set processing successful!',
         endpoint: '/api/convert-multiple',
         onSuccess: (data) => {
+          setImageFiles(imageFiles);
           if (data.matrices) {
             setMatrixImages(data.matrices);
+          }
+          if (data.base64_images) {
+            setImageBase64s(data.base64_images);
           }
         },
       });
@@ -122,7 +99,7 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
     );
 
     if (imageFiles && imageFiles.length > 0) {
-      setFilesChange(imageFiles);
+      setImageFiles(imageFiles);
     } else {
       toast.error('Upload folder dengan ekstensi file png, jpg, atau jpeg');
     }
@@ -130,8 +107,8 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
 
   // Function to handle the delete event on the delete button
   const handleDelete = () => {
-    setFilesChange([]);
-    setImageUrls([]);
+    setImageFiles([]);
+    setImageBase64s([]);
     setMatrixImages([]);
     if (hiddenFileInput.current) {
       hiddenFileInput.current.value = '';
@@ -142,10 +119,10 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
   return (
     <div>
       <section className='flex flex-col gap-7 items-center justify-center'>
-        {imageUrls.length > 0 && filesChange.length > 0 ? (
+        {imageBase64s.length > 0 && imageFiles.length > 0 ? (
           <GroupPagination
-            files={filesChange}
-            imageUrls={imageUrls}
+            files={imageFiles}
+            imageUrls={imageBase64s}
             itemsPerPage={itemsPerPage}
           />
         ) : (
@@ -172,9 +149,9 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
           <div className='space-y-3'>
             <div className='flex gap-4'>
               <Button onClick={handleClick} size='medium' color='gradient-bp'>
-                Insert {filesChange.length > 0 ? 'New ' : 'the'} Images
+                Insert {imageFiles.length > 0 ? 'New ' : 'the'} Images
               </Button>
-              {filesChange.length > 0 && (
+              {imageFiles.length > 0 && (
                 <Button
                   onClick={handleDelete}
                   size='medium'

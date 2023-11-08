@@ -15,7 +15,7 @@ import toast from 'react-hot-toast';
 
 export default function Home() {
   // Initialize state variables for image query, image data, texture option, specific limits, and limits count
-  const [imageQuery, setImageQuery] = useState<File | null>(null);
+  const [imageQuery, setImageQuery] = useState<string>('');
   const [isTexture, setIsTexture] = useState<boolean>(false);
   const [imageMatrixQuery, setImageMatrixQuery] = useState<number[][]>([]);
   const [imageQueryCam, setImageQueryCam] = useState<string>('');
@@ -54,14 +54,7 @@ export default function Home() {
   useEffect(() => {
     setResultPercentages(imageDataSet.map((_, index) => (index + 1) * 10));
   }, [imageDataSet]);
-  const toBase64 = (file: File) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
-      reader.readAsDataURL(file);
-    });
-  };
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const handleDownloadPDF = async () => {
     if (
@@ -70,37 +63,25 @@ export default function Home() {
       imageDataSet.length > 0
     ) {
       // Convert the image query to a base64 string
-      let imageQueryBase64 = '';
-      if (!isCamera && imageQuery) {
-        imageQueryBase64 = (await toBase64(imageQuery)) as string;
-      }
 
       // Convert the image URLs in the data set to base64 strings
       setIsLoading(true);
-      const imageDataSetBase64 = await toast.promise(
-        Promise.all(
-          imageDataSet.map(async (imageData) => {
-            // Fetch the image from the server-side and convert it to base64
-            const response = await fetch('/api/convert-image-to-base64', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ url: imageData.url }),
-            });
-            const data = await response.json();
-            return data;
-          })
-        ),
-        {
-          loading: 'Loading...',
-          success: 'Successfully fetched images!',
-          error: 'Failed to fetch images',
-        }
-      );
+      const imageDataSetBase64 = await makeApiRequest({
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          urls: imageDataSet.map((data) => data.url),
+        }),
+        loadingMessage: 'Loading...',
+        successMessage: 'Successfully fetched images!',
+        endpoint: '/api/convert-image-to-base64',
+        onSuccess: (data) => {},
+      });
 
       const data = {
-        image_query: isCamera ? imageQueryCam : imageQueryBase64,
+        image_query: isCamera ? imageQueryCam : imageQuery,
         image_data_set: imageDataSetBase64,
         is_texture: isTexture,
         result_percentage_set: resultPercentages,
@@ -146,8 +127,8 @@ export default function Home() {
           ></Camera>
         ) : (
           <SingleFileUpload
-            fileChange={imageQuery}
-            setFileChange={setImageQuery}
+            imageBase64={imageQuery}
+            setImageBase64={setImageQuery}
             setImageMatrix={setImageMatrixQuery}
           />
         )}
