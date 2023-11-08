@@ -34,11 +34,11 @@ def hello_world():
 
 imageProcessor = ImageProcessing()
 class ConvertImageToBase64Request(BaseModel):
-    url: str
+    urls: List[str]
 
 @app.post("/api/convert-image-to-base64")
 async def convert_image_to_base64(request: ConvertImageToBase64Request):
-    return imageProcessor.url_to_base64(request.url)
+    return await imageProcessor.url_to_base64(request.urls)
     
 @app.post("/api/convert")
 async def convert(file: UploadFile = File(...)):
