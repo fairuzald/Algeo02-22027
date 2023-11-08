@@ -48,37 +48,6 @@ async def convert(file: UploadFile = File(...)):
 async def convert_multiple(files: List[UploadFile] = File(...)):
     return await imageProcessor.convert_multiple(files)
 
-detector = ObjectDetector()
-
-# Endpoint API untuk mendeteksi dan memotong objek
-
-# Inisialisasi object detector
-detector = ObjectDetector()
-
-# Endpoint untuk mengolah gambar yang di-upload
-@app.post("/api/process_image")
-async def process_image(file: UploadFile = File(...)) -> Dict[str, Union[List[List[int]], str]]:
-    # Baca file yang di-upload
-    contents = await file.read()
-    image = Image.open(io.BytesIO(contents))
-    image_matrix = np.array(image)
-
-    # Deteksi objek dan crop gambar jika mungkin
-    cropped_image = detector.detect_and_crop(image_matrix)
-
-    if cropped_image is not None:
-        # Jika berhasil crop, konversi hasilnya ke matriks dan base64
-        cropped_matrix = cropped_image.tolist()
-        _, buffer = cv2.imencode('.png', cropped_image)
-        image_base64 = base64.b64encode(buffer).decode('utf-8')
-        return {"matrix": cropped_matrix, "base64": image_base64}
-    else:
-        # Jika tidak bisa crop, kembalikan matriks dan base64 dari gambar asli
-        original_matrix = image_matrix.tolist()
-        _, buffer = cv2.imencode('.png', image_matrix)
-        image_base64 = base64.b64encode(buffer).decode('utf-8')
-        return {"matrix": original_matrix, "base64": image_base64}
-
 @app.post("/api/convert-camera")
 async def convert_camera(request: Request):
     body = await request.json()

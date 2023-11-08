@@ -13,12 +13,12 @@ import TextInput from '@/components/text-input';
 
 export default function Home() {
   // Image Query Data
-  const [imageQuery, setImageQuery] = useState<File | null>(null);
+  const [imageQuery, setImageQuery] = useState<string>('');
   const [imageMatrixQuery, setImageMatrixQuery] = useState<number[][]>([]);
   const [imageQueryCam, setImageQueryCam] = useState<string>('');
 
   // Image Data Set
-  const [imageDataSet, setImageDataSet] = useState<File[]>([]);
+  const [imageDataSet, setImageDataSet] = useState<string[]>([]);
   const [imageMatrixDataSet, setImageMatrixDataSet] = useState<number[][][]>(
     []
   );
@@ -56,15 +56,14 @@ export default function Home() {
   }, [imageDataSet]);
 
   const handleDownloadPDF = async () => {
-    if (imageQuery && imageDataSet && imageDataSet.length > 0) {
-      const imageQueryBase64 = await toBase64(imageQuery);
-      const imageDataSetBase64 = await Promise.all(
-        imageDataSet.map((image) => toBase64(image))
-      );
-
+    if (
+      (imageQuery || imageQueryCam) &&
+      imageDataSet &&
+      imageDataSet.length > 0
+    ) {
       const data = {
-        image_query: isCamera ? imageQueryCam : imageQueryBase64,
-        image_data_set: imageDataSetBase64,
+        image_query: isCamera ? imageQueryCam : imageQuery,
+        image_data_set: imageDataSet,
         is_texture: isTexture,
         result_percentage_set: resultPercentages,
         output_filename: outputFileName,
@@ -91,15 +90,6 @@ export default function Home() {
     }
   };
 
-  const toBase64 = (file: File) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
-      reader.readAsDataURL(file);
-    });
-  };
-
   return (
     <main className='flex gap-8 text-white lg:gap-10 min-h-screen flex-col py-20 px-8 sm:px-10 md:px-20 lg:px-40 bg-gradient-to-tr from-[#455976] via-[55%] via-[#2A182e]  to-[#8b3f25]'>
       <h1 className='font-poppins font-bold text-3xl lg:text-4xl tracking-wide text-center'>
@@ -115,8 +105,8 @@ export default function Home() {
           ></Camera>
         ) : (
           <SingleFileUpload
-            fileChange={imageQuery}
-            setFileChange={setImageQuery}
+            imageBase64={imageQuery}
+            setImageBase64={setImageQuery}
             setImageMatrix={setImageMatrixQuery}
           />
         )}
@@ -127,8 +117,8 @@ export default function Home() {
           Data set input
         </h2>
         <MultipleFileUpload
-          setFilesChange={setImageDataSet}
-          filesChange={imageDataSet}
+          setImageBase64s={setImageDataSet}
+          imageBase64s={imageDataSet}
           setMatrixImages={setImageMatrixDataSet}
         />
         <div className='flex items-center flex-wrap justify-center gap-4 py-4'>
@@ -180,7 +170,7 @@ export default function Home() {
             isRounded
             onClick={handleDownloadPDF}
             disabled={
-              !imageQuery ||
+              (!imageQuery && !imageQueryCam) ||
               !imageDataSet ||
               imageDataSet.length <= 0 ||
               !outputFileName

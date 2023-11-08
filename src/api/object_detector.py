@@ -1,11 +1,6 @@
 import os
 import cv2
 import numpy as np
-import io
-import base64
-from fastapi import HTTPException, UploadFile
-from PIL import Image
-from typing import List, Dict, Union
 
 class ObjectDetector:
     def __init__(self):

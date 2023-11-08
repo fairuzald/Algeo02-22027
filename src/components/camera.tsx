@@ -92,7 +92,7 @@ const Camera: React.FC<CameraProps> = ({
             onSuccess: (data) => {
               if (data.matrix) {
                 setImageMatrix(data.matrix);
-                setImageData(dataUrl);
+                setImageData(data.base64);
                 setIsLoading(false);
               }
             },

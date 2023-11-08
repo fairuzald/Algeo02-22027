@@ -2,6 +2,7 @@ import base64
 from typing import Dict, List, Union
 import cv2
 from fastapi import UploadFile, HTTPException
+from fastapi.encoders import jsonable_encoder
 import numpy as np
 from PIL import Image
 import io
@@ -33,7 +34,7 @@ class ImageProcessing:
             # Konversi bytes ke base64
             base64_img = base64.b64encode(img_bytes).decode('utf-8')
 
-            return {"matrix": cropped_img.tolist(), "base64": base64_img}
+            return {"matrix": cropped_img.tolist(), "base64": 'data:image/png;base64,'+base64_img}
         except FileNotFoundError:
             raise HTTPException(status_code=404, detail="Error: File not found")
         except ValueError:
@@ -108,9 +109,23 @@ class ImageProcessing:
             img_bytes = base64.b64decode(img_str)
             img = Image.open(io.BytesIO(img_bytes))
             img_matrix = np.array(img)
-            
 
-            return {"matrix": img_matrix.tolist()}
+            # Detect and crop the image
+            cropped_img = detector.detect_and_crop(img_matrix)
+            
+            # Convert the cropped image to base64
+            pil_img = Image.fromarray(cropped_img)
+            
+            # Save PIL Image to memory as bytes with PNG format
+            img_bytes_io = io.BytesIO()
+            pil_img.save(img_bytes_io, format='PNG')
+            img_bytes = img_bytes_io.getvalue()
+
+            # Convert bytes to base64
+            base64_img = base64.b64encode(img_bytes).decode('utf-8')
+
+            # Encode the response data using the custom encoder
+            return {"matrix": img_matrix.tolist(), "base64": 'data:image/png;base64,' + base64_img}
         except HTTPException as e:
             raise e
         except Exception as e:
