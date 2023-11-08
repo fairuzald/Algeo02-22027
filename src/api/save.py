@@ -2,6 +2,7 @@ import os
 import base64
 from io import BytesIO
 from PIL import Image
+from fastapi import HTTPException
 from fpdf import FPDF
 import tempfile
 
@@ -47,43 +48,48 @@ class PDFCreator:
         return img_w, img_h
 
     def create_pdf(self, data: dict):
-        image_query = data['image_query']
-        image_data_set = data['image_data_set']
-        is_texture = data['is_texture']
-        result_percentage_set = data['result_percentage_set']
-        output_filename = data['output_filename']
-        pdf = FPDF()
-        pdf.add_page()
-        self.watermark(pdf)
+        try:
+            image_query = data['image_query']
+            image_data_set = data['image_data_set']
+            is_texture = data['is_texture']
+            result_percentage_set = data['result_percentage_set']
+            output_filename = data['output_filename']
+            pdf = FPDF()
+            pdf.add_page()
+            self.watermark(pdf)
 
-        # Menambahkan metode
-        metode = "Texture" if is_texture else "Color"
-        pdf.set_font("Arial", style='B', size=28)
-        pdf.cell(200, 25, txt=f"Report Cukurukuk CBIR", ln=True, align='C')
-        pdf.set_font("Arial", style='B', size=20)
-        pdf.cell(200, 10, txt=f"Metode: {metode}", ln=True, align='C')
-        pdf.cell(200, 10, txt="Image Query: ", ln=True, align='C')
+            # Add method
+            metode = "Texture" if is_texture else "Color"
+            pdf.set_font("Arial", style='B', size=28)
+            pdf.cell(200, 25, txt=f"Report Cukurukuk CBIR", ln=True, align='C')
+            pdf.set_font("Arial", style='B', size=20)
+            pdf.cell(200, 10, txt=f"Method: {metode}", ln=True, align='C')
+            pdf.cell(200, 10, txt="Image Query: ", ln=True, align='C')
 
-        image_query_file, img_w, img_h = self.process_image(image_query, "image_query.png")
-        img_w, img_h = self.add_image_to_pdf(pdf, image_query_file, img_w, img_h)
+            image_query_file, img_w, img_h = self.process_image(image_query, "image_query.png")
+            img_w, img_h = self.add_image_to_pdf(pdf, image_query_file, img_w, img_h)
 
-        pdf.cell(200, 10, txt="Data Set:", ln=True, align='C')
-        pdf.set_font("Arial", size=12)
-        for index, (image_data, result_percentage) in enumerate(zip(image_data_set, result_percentage_set)):
-            image_data_file, img_w, img_h = self.process_image(image_data, f"image_data_{index}.png")
-            img_w, img_h = self.add_image_to_pdf(pdf, image_data_file, img_w, img_h)
-            pdf.cell(200, 20, txt=f"Persentase: {result_percentage}%", ln=True)
+            pdf.cell(200, 10, txt="Data Set:", ln=True, align='C')
+            pdf.set_font("Arial", size=12)
+            for index, (image_data, result_percentage) in enumerate(zip(image_data_set, result_percentage_set)):
+                image_data_file, img_w, img_h = self.process_image(image_data, f"image_data_{index}.png")
+                img_w, img_h = self.add_image_to_pdf(pdf, image_data_file, img_w, img_h)
+                pdf.cell(200, 20, txt=f"Percentage: {result_percentage}%", ln=True)
 
-            if pdf.get_y() + img_h > pdf.page_break_trigger:
-                pdf.add_page()
-                self.watermark(pdf)
-            
+                if pdf.get_y() + img_h > pdf.page_break_trigger:
+                    pdf.add_page()
+                    self.watermark(pdf)
+                
+            pdf_file_dir = "../test/output/"
+            if not os.path.exists(pdf_file_dir):
+                os.makedirs(pdf_file_dir)
 
-        pdf_file_dir = "../test/output/"
-        if not os.path.exists(pdf_file_dir):
-            os.makedirs(pdf_file_dir)
+            pdf_file_path = os.path.join(pdf_file_dir, f"{output_filename}.pdf")
+            pdf.output(pdf_file_path)
 
-        pdf_file_path = os.path.join(pdf_file_dir, f"{output_filename}.pdf")
-        pdf.output(pdf_file_path)
-
-        return {"file_path": pdf_file_path}
+            return {"file_path": pdf_file_path}
+        except HTTPException as e:
+            raise e
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+       

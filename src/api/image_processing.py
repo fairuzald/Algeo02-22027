@@ -2,7 +2,6 @@ import base64
 from typing import Dict, List, Union
 import cv2
 from fastapi import UploadFile, HTTPException
-from fastapi.encoders import jsonable_encoder
 import numpy as np
 from PIL import Image
 import io
@@ -12,6 +11,7 @@ import requests
 
 from api.object_detector import ObjectDetector
 detector = ObjectDetector()
+
 class ImageProcessing:
     async def convert(self, file: UploadFile) -> Union[Dict[str, List[List[int]]], Dict[str, str]]:
         try:
@@ -26,12 +26,12 @@ class ImageProcessing:
             # Convert the cropped image to base64
             pil_img = Image.fromarray(cropped_img)
 
-            # Simpan PIL Image ke dalam memory sebagai bytes dengan format PNG
+            # Save PIL Image to memory as bytes with PNG format
             img_bytes_io = io.BytesIO()
             pil_img.save(img_bytes_io, format='PNG')
             img_bytes = img_bytes_io.getvalue()
 
-            # Konversi bytes ke base64
+            # Convert bytes to base64
             base64_img = base64.b64encode(img_bytes).decode('utf-8')
 
             return {"matrix": cropped_img.tolist(), "base64": 'data:image/png;base64,'+base64_img}
@@ -51,19 +51,18 @@ class ImageProcessing:
                 image = Image.open(io.BytesIO(contents))
                 matrix = np.array(image)
 
-            # Detect and crop the image
+                # Detect and crop the image
                 cropped_img = detector.detect_and_crop(matrix)
             
-            # Convert the cropped image to base64
+                # Convert the cropped image to base64
                 pil_img = Image.fromarray(cropped_img)
                
-
-            # Simpan PIL Image ke dalam memory sebagai bytes dengan format PNG
+                # Save PIL Image to memory as bytes with PNG format
                 img_bytes_io = io.BytesIO()
                 pil_img.save(img_bytes_io, format='PNG')
                 img_bytes = img_bytes_io.getvalue()
 
-            # Konversi bytes ke base64
+                # Convert bytes to base64
                 base64_img = base64.b64encode(img_bytes).decode('utf-8')
                 base64_images.append(f"data:image/png;base64,{base64_img}")
                 matrices.append(matrix.tolist())
@@ -78,24 +77,29 @@ class ImageProcessing:
     class ImageUrls(BaseModel):
         urls: List[str]
 
-    def url_to_matrix(self, url):
-        response = requests.get(url, stream=True)
-        if response.status_code != 200:
-            raise HTTPException(status_code=400, detail="Failed to fetch image from URL")
+    async def url_to_matrix(self, url: str) -> List[List[int]]:
+        try:
+            response = requests.get(url, stream=True)
+            if response.status_code != 200:
+                raise HTTPException(status_code=400, detail="Failed to fetch image from URL")
 
-        image_bytes = bytes()
-        for chunk in response.iter_content(chunk_size=128):
-            image_bytes += chunk
+            image_bytes = bytes()
+            for chunk in response.iter_content(chunk_size=128):
+                image_bytes += chunk
 
-        nparr = np.frombuffer(image_bytes, np.uint8)
-        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            nparr = np.frombuffer(image_bytes, np.uint8)
+            image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-        # Ubah gambar ke dalam format matriks (array NumPy)
-        if image is not None:
-            matrix = image.tolist()
-            return matrix
-        else:
-            raise HTTPException(status_code=400, detail="Failed to convert image to matrix")
+            # Convert image to matrix (NumPy array)
+            if image is not None:
+                matrix = image.tolist()
+                return matrix
+            else:
+                raise HTTPException(status_code=400, detail="Failed to convert image to matrix")
+        except HTTPException as e:
+            raise e
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
         
     async def convert_camera(self, image_data: str) -> Dict[str, List[List[int]]]:
         try:
@@ -131,16 +135,21 @@ class ImageProcessing:
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
         
-    async def url_to_base64(self, urls: List[str]):
+    async def url_to_base64(self, urls: List[str]) -> List[str]:
         result = []
-        for url in urls:
-            response = requests.get(url)
-            print(url)
-            if response.status_code == 200:
-                content_type = response.headers['Content-Type']
-                image_format = content_type.split('/')[-1]
-                base64_string = base64.b64encode(response.content).decode('utf-8')
-                base64_result = f'data:image/{image_format};base64,{base64_string}'
-                result.append(base64_result)
-        return result
-
+        try:
+            for url in urls:
+                response = requests.get(url)
+                if response.status_code == 200:
+                    content_type = response.headers['Content-Type']
+                    image_format = content_type.split('/')[-1]
+                    base64_string = base64.b64encode(response.content).decode('utf-8')
+                    base64_result = f'data:image/{image_format};base64,{base64_string}'
+                    result.append(base64_result)
+                else:
+                    raise HTTPException(status_code=400, detail="Failed to fetch image from URL")
+            return result
+        except HTTPException as e:
+            raise e
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
