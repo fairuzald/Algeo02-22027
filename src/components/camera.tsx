@@ -11,6 +11,7 @@ interface CameraProps {
   setImageData: React.Dispatch<React.SetStateAction<string>>;
   imageMatrix: number[][];
   setImageMatrix: React.Dispatch<React.SetStateAction<number[][]>>;
+  isLoadingOutside?: boolean;
 }
 
 const Camera: React.FC<CameraProps> = ({
@@ -18,6 +19,7 @@ const Camera: React.FC<CameraProps> = ({
   setImageData,
   imageMatrix,
   setImageMatrix,
+  isLoadingOutside = false,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -44,7 +46,7 @@ const Camera: React.FC<CameraProps> = ({
 
     // Mengatur interval waktu untuk menangkap gambar
     const interval = setInterval(() => {
-      if (!isLoading) {
+      if (!isLoading && !isLoadingOutside) {
         captureImage();
       }
     }, 10000); // Menangkap gambar setiap 15 detik
@@ -52,12 +54,12 @@ const Camera: React.FC<CameraProps> = ({
     return () => {
       clearInterval(interval);
     };
-  }, [isLoading]);
+  }, [isLoading, isLoadingOutside]);
 
   // countdown reduce
   useEffect(() => {
     const interval = setInterval(() => {
-      if (countdown > 0 && !isLoading) {
+      if (countdown > 0 && !isLoading && !isLoadingOutside) {
         setCountdown((prev) => prev - 1);
       } else {
         clearInterval(interval);
@@ -137,12 +139,13 @@ const Camera: React.FC<CameraProps> = ({
             className='h-full max-lg:max-h-[280px] lg:h-[320px] 2xl:h-[480px] w-full bg-transparent object-contain object-center'
           />
           <p className='text-white font-poppins text-base lg:text-xl text-center'>
-            {isLoading
+            {isLoading || isLoadingOutside
               ? 'Data gambar sedang diolah'
               : countdown > 0
               ? 'Catch Image in ' + countdown
               : 'Cheese!!!'}{' '}
             {!isLoading &&
+              !isLoadingOutside &&
               (countdown > 0 && countdown == 1
                 ? 'second'
                 : countdown > 0 && 'seconds')}

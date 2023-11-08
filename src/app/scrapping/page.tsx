@@ -11,6 +11,7 @@ import TextInput from '@/components/text-input';
 import GroupPagination, { ImageData } from '@/components/scrape-pagination';
 import { Scrapper } from '@/components/scrapper';
 import { makeApiRequest } from '@/lib/helper';
+import toast from 'react-hot-toast';
 
 export default function Home() {
   // Initialize state variables for image query, image data, texture option, specific limits, and limits count
@@ -61,27 +62,42 @@ export default function Home() {
       reader.readAsDataURL(file);
     });
   };
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const handleDownloadPDF = async () => {
-    if (imageQuery && imageDataSet && imageDataSet.length > 0) {
+    if (
+      (imageQuery || imageQueryCam) &&
+      imageDataSet &&
+      imageDataSet.length > 0
+    ) {
       // Convert the image query to a base64 string
-      const imageQueryBase64 = await toBase64(imageQuery);
+      let imageQueryBase64 = '';
+      if (!isCamera && imageQuery) {
+        imageQueryBase64 = (await toBase64(imageQuery)) as string;
+      }
 
       // Convert the image URLs in the data set to base64 strings
-      const imageDataSetBase64 = await Promise.all(
-        imageDataSet.map(async (imageData) => {
-          // Fetch the image from the server-side and convert it to base64
-          const response = await fetch('/api/convert-image-to-base64', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ url: imageData.url }),
-          });
-          const data = await response.json();
-          return data;
-        })
+      setIsLoading(true);
+      const imageDataSetBase64 = await toast.promise(
+        Promise.all(
+          imageDataSet.map(async (imageData) => {
+            // Fetch the image from the server-side and convert it to base64
+            const response = await fetch('/api/convert-image-to-base64', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ url: imageData.url }),
+            });
+            const data = await response.json();
+            return data;
+          })
+        ),
+        {
+          loading: 'Loading...',
+          success: 'Successfully fetched images!',
+          error: 'Failed to fetch images',
+        }
       );
-      console.log(imageDataSetBase64);
 
       const data = {
         image_query: isCamera ? imageQueryCam : imageQueryBase64,
@@ -107,6 +123,7 @@ export default function Home() {
           link.href = pdfFilePath;
           link.download = `${outputFileName}.pdf`;
           link.click();
+          setIsLoading(false);
         },
       });
     }
@@ -121,6 +138,7 @@ export default function Home() {
         {/* Display camera component if isCamera is true, otherwise display single file upload component */}
         {isCamera ? (
           <Camera
+            isLoadingOutside={isLoading}
             imageData={imageQueryCam}
             setImageData={setImageQueryCam}
             imageMatrix={imageMatrixQuery}
@@ -191,10 +209,9 @@ export default function Home() {
             isRounded
             onClick={handleDownloadPDF}
             disabled={
-              !imageQuery ||
+              (!imageQuery && !imageQueryCam) ||
               !imageDataSet ||
-              imageDataSet.length <= 0 ||
-              !outputFileName
+              imageDataSet.length <= 0
             }
           >
             Download Report
