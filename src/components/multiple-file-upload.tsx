@@ -40,25 +40,6 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
   const itemsPerPage = 6;
   const hiddenFileInput = useRef<HTMLInputElement>(null);
 
-  // useEffect hook to create Data URLs for the selected filesChange
-  useEffect(() => {
-    if (filesChange.length > 0) {
-      const newImageUrls = filesChange.map((file) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        return new Promise<string>((resolve) => {
-          reader.onloadend = () => {
-            resolve(reader.result as string);
-          };
-        });
-      });
-
-      Promise.all(newImageUrls).then((results) => {
-        setImageUrls(results);
-      });
-    }
-  }, [filesChange]);
-
   // Function to handle file selection
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
@@ -83,6 +64,7 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
         onSuccess: (data) => {
           if (data.matrices) {
             setMatrixImages(data.matrices);
+            setImageUrls(data.base64_images);
           }
         },
       });

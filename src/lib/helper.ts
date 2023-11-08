@@ -25,7 +25,7 @@ export async function makeApiRequest({
 }: ApiRequestOptions) {
   try {
     await toast.promise(
-      fetch(endpoint, {
+      fetch(process.env.NEXT_PUBLIC_API_URL + endpoint, {
         method: method,
         headers: headers,
         timeout: 300000,

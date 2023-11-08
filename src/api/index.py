@@ -1,17 +1,23 @@
 import base64
-from io import BytesIO
-import os
-from fastapi import FastAPI, File,  Request, UploadFile, APIRouter
+from typing import Dict
+from typing import Union
+import io
+import cv2
+from fastapi import FastAPI, File,  Request, UploadFile
 from typing import List
 from urllib.parse import urlparse, urlunparse
-from fpdf import FPDF
+from fastapi.responses import StreamingResponse
+import numpy as np
 from pydantic import BaseModel
+from api.object_detector import ObjectDetector
 from api.scraper import ImageScraper
 from fastapi.middleware.cors import CORSMiddleware
-from PIL import Image
 from api.image_processing import ImageProcessing
 from api.save import PDFCreator
+from PIL import Image
+
 app = FastAPI()
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -41,6 +47,37 @@ async def convert(file: UploadFile = File(...)):
 @app.post("/api/convert-multiple")
 async def convert_multiple(files: List[UploadFile] = File(...)):
     return await imageProcessor.convert_multiple(files)
+
+detector = ObjectDetector()
+
+# Endpoint API untuk mendeteksi dan memotong objek
+
+# Inisialisasi object detector
+detector = ObjectDetector()
+
+# Endpoint untuk mengolah gambar yang di-upload
+@app.post("/api/process_image")
+async def process_image(file: UploadFile = File(...)) -> Dict[str, Union[List[List[int]], str]]:
+    # Baca file yang di-upload
+    contents = await file.read()
+    image = Image.open(io.BytesIO(contents))
+    image_matrix = np.array(image)
+
+    # Deteksi objek dan crop gambar jika mungkin
+    cropped_image = detector.detect_and_crop(image_matrix)
+
+    if cropped_image is not None:
+        # Jika berhasil crop, konversi hasilnya ke matriks dan base64
+        cropped_matrix = cropped_image.tolist()
+        _, buffer = cv2.imencode('.png', cropped_image)
+        image_base64 = base64.b64encode(buffer).decode('utf-8')
+        return {"matrix": cropped_matrix, "base64": image_base64}
+    else:
+        # Jika tidak bisa crop, kembalikan matriks dan base64 dari gambar asli
+        original_matrix = image_matrix.tolist()
+        _, buffer = cv2.imencode('.png', image_matrix)
+        image_base64 = base64.b64encode(buffer).decode('utf-8')
+        return {"matrix": original_matrix, "base64": image_base64}
 
 @app.post("/api/convert-camera")
 async def convert_camera(request: Request):

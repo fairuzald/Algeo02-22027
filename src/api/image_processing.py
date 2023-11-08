@@ -8,13 +8,32 @@ import io
 from pydantic import BaseModel
 
 import requests
+
+from api.object_detector import ObjectDetector
+detector = ObjectDetector()
 class ImageProcessing:
     async def convert(self, file: UploadFile) -> Union[Dict[str, List[List[int]]], Dict[str, str]]:
         try:
             contents = await file.read()
+            
             image = Image.open(io.BytesIO(contents))
             matrix = np.array(image)
-            return {"matrix": matrix.tolist()}
+
+            # Detect and crop the image
+            cropped_img = detector.detect_and_crop(matrix)
+            
+            # Convert the cropped image to base64
+            pil_img = Image.fromarray(cropped_img)
+
+            # Simpan PIL Image ke dalam memory sebagai bytes dengan format PNG
+            img_bytes_io = io.BytesIO()
+            pil_img.save(img_bytes_io, format='PNG')
+            img_bytes = img_bytes_io.getvalue()
+
+            # Konversi bytes ke base64
+            base64_img = base64.b64encode(img_bytes).decode('utf-8')
+
+            return {"matrix": cropped_img.tolist(), "base64": base64_img}
         except FileNotFoundError:
             raise HTTPException(status_code=404, detail="Error: File not found")
         except ValueError:
@@ -24,13 +43,30 @@ class ImageProcessing:
 
     async def convert_multiple(self, files: List[UploadFile]) -> Union[Dict[str, List[List[List[int]]]], Dict[str, str]]:
         matrices = []
+        base64_images = []
         try:
             for uploaded_file in files:
                 contents = await uploaded_file.read()
                 image = Image.open(io.BytesIO(contents))
                 matrix = np.array(image)
+
+            # Detect and crop the image
+                cropped_img = detector.detect_and_crop(matrix)
+            
+            # Convert the cropped image to base64
+                pil_img = Image.fromarray(cropped_img)
+               
+
+            # Simpan PIL Image ke dalam memory sebagai bytes dengan format PNG
+                img_bytes_io = io.BytesIO()
+                pil_img.save(img_bytes_io, format='PNG')
+                img_bytes = img_bytes_io.getvalue()
+
+            # Konversi bytes ke base64
+                base64_img = base64.b64encode(img_bytes).decode('utf-8')
+                base64_images.append(f"data:image/png;base64,{base64_img}")
                 matrices.append(matrix.tolist())
-            return {"matrices": matrices}
+            return {"matrices": matrices, "base64_images": base64_images}
         except FileNotFoundError:
             raise HTTPException(status_code=404, detail="Error: File not found")
         except ValueError:
@@ -72,6 +108,7 @@ class ImageProcessing:
             img_bytes = base64.b64decode(img_str)
             img = Image.open(io.BytesIO(img_bytes))
             img_matrix = np.array(img)
+            
 
             return {"matrix": img_matrix.tolist()}
         except HTTPException as e:

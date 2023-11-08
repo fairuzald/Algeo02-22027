@@ -81,13 +81,16 @@ export default function Home() {
         Promise.all(
           imageDataSet.map(async (imageData) => {
             // Fetch the image from the server-side and convert it to base64
-            const response = await fetch('/api/convert-image-to-base64', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ url: imageData.url }),
-            });
+            const response = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL}/api/convert-image-to-base64`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ url: imageData.url }),
+              }
+            );
             const data = await response.json();
             return data;
           })

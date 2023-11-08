@@ -32,20 +32,6 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const pathname = usePathname();
 
-  useEffect(() => {
-    // Jika fileChange ada dan fileChange merupakan instance dari File
-    if (fileChange && fileChange instanceof File) {
-      // Membuat URL Object dari fileChange dan set sebagai image URL
-      const url = URL.createObjectURL(fileChange);
-      setImageUrl(url);
-
-      // Membersihkan URL Object ketika komponen unmount atau fileChange berubah
-      return () => {
-        URL.revokeObjectURL(url);
-      };
-    }
-  }, [fileChange]);
-
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
 
@@ -63,6 +49,7 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
           if (data.matrix) {
             setImageMatrix(data.matrix);
             setFileChange(selectedFile);
+            setImageUrl(`data:image/png;base64,${data.base64}`);
           }
         },
       });
