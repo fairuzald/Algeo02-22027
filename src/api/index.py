@@ -1,17 +1,16 @@
 import base64
-import cv2
-from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from io import BytesIO
+import os
+from fastapi import FastAPI, File,  Request, UploadFile, APIRouter
 from typing import List
 from urllib.parse import urlparse, urlunparse
-import numpy as np
-from io import BytesIO
-from PIL import Image
+from fpdf import FPDF
 from pydantic import BaseModel
-import requests
 from api.scraper import ImageScraper
 from fastapi.middleware.cors import CORSMiddleware
+from PIL import Image
 from api.image_processing import ImageProcessing
-
+from api.save import PDFCreator
 app = FastAPI()
 # Add CORS middleware
 app.add_middleware(
@@ -28,7 +27,13 @@ def hello_world():
     return {"message": "Hello World"}
 
 imageProcessor = ImageProcessing()
+class ConvertImageToBase64Request(BaseModel):
+    url: str
 
+@app.post("/api/convert-image-to-base64")
+async def convert_image_to_base64(request: ConvertImageToBase64Request):
+    return imageProcessor.url_to_base64(request.url)
+    
 @app.post("/api/convert")
 async def convert(file: UploadFile = File(...)):
     return await imageProcessor.convert(file)
@@ -60,3 +65,17 @@ async def get_image_scrape(url: str, limits: int):
         )
     )
     return scraper.get_image(full_url, limits)
+
+pdf_creator = PDFCreator()
+
+class Data(BaseModel):
+    image_query: str
+    image_data_set: list[str]
+    is_texture: bool
+    result_percentage_set: list[float]
+    output_filename: str
+
+@app.post("/api/create-pdf-file")
+async def create_pdf_file(data: Data):
+    result = pdf_creator.create_pdf(data.model_dump())
+    return result

@@ -10,6 +10,10 @@ interface ApiRequestOptions {
   onSuccess: (data: any) => void;
 }
 
+interface ExtendedRequestInit extends RequestInit {
+  timeout?: number;
+}
+
 export async function makeApiRequest({
   body,
   method,
@@ -24,8 +28,11 @@ export async function makeApiRequest({
       fetch(endpoint, {
         method: method,
         headers: headers,
+        timeout: 300000,
+        keepAlive: true,
+        noDelay: true,
         ...(method !== 'GET' ? { body: body } : {}),
-      })
+      } as ExtendedRequestInit)
         .then(async (response) => {
           if (!response.ok) {
             console.log(response);

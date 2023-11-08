@@ -10,6 +10,8 @@ import Camera from '@/components/camera';
 import TextInput from '@/components/text-input';
 import GroupPagination, { ImageData } from '@/components/scrape-pagination';
 import { Scrapper } from '@/components/scrapper';
+import { makeApiRequest } from '@/lib/helper';
+import toast from 'react-hot-toast';
 
 export default function Home() {
   // Initialize state variables for image query, image data, texture option, specific limits, and limits count
@@ -21,6 +23,7 @@ export default function Home() {
   const [imageDataSetMatrix, setImageDataSetMatrix] = useState<number[][][]>(
     []
   );
+  const [outputFileName, setOutputFileName] = useState<string>('');
 
   // Get the search parameters from the URL
   const searchParams = useSearchParams();
@@ -44,6 +47,88 @@ export default function Home() {
     console.log('Isi Query', memoizedImageMatrixQuery);
   }, [memoizedImageMatrixDataSet, memoizedImageMatrixQuery]);
 
+  const [resultPercentages, setResultPercentages] = useState<number[]>(
+    imageDataSet.map((_, index) => (index + 1) * 10)
+  );
+
+  useEffect(() => {
+    setResultPercentages(imageDataSet.map((_, index) => (index + 1) * 10));
+  }, [imageDataSet]);
+  const toBase64 = (file: File) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+      reader.readAsDataURL(file);
+    });
+  };
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const handleDownloadPDF = async () => {
+    if (
+      (imageQuery || imageQueryCam) &&
+      imageDataSet &&
+      imageDataSet.length > 0
+    ) {
+      // Convert the image query to a base64 string
+      let imageQueryBase64 = '';
+      if (!isCamera && imageQuery) {
+        imageQueryBase64 = (await toBase64(imageQuery)) as string;
+      }
+
+      // Convert the image URLs in the data set to base64 strings
+      setIsLoading(true);
+      const imageDataSetBase64 = await toast.promise(
+        Promise.all(
+          imageDataSet.map(async (imageData) => {
+            // Fetch the image from the server-side and convert it to base64
+            const response = await fetch('/api/convert-image-to-base64', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ url: imageData.url }),
+            });
+            const data = await response.json();
+            return data;
+          })
+        ),
+        {
+          loading: 'Loading...',
+          success: 'Successfully fetched images!',
+          error: 'Failed to fetch images',
+        }
+      );
+
+      const data = {
+        image_query: isCamera ? imageQueryCam : imageQueryBase64,
+        image_data_set: imageDataSetBase64,
+        is_texture: isTexture,
+        result_percentage_set: resultPercentages,
+        output_filename: outputFileName,
+      };
+
+      makeApiRequest({
+        body: JSON.stringify(data),
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        loadingMessage: 'Creating PDF...',
+        successMessage: 'PDF created successfully!',
+        endpoint: '/api/create-pdf-file',
+        onSuccess: (data) => {
+          // Download the PDF file
+          const pdfFilePath = data.file_path;
+          const link = document.createElement('a');
+          link.href = pdfFilePath;
+          link.download = `${outputFileName}.pdf`;
+          link.click();
+          setIsLoading(false);
+        },
+      });
+    }
+  };
+
   return (
     <main className='flex gap-8 text-white lg:gap-10 min-h-screen flex-col py-20 px-8 sm:px-10 md:px-20 lg:px-40 bg-gradient-to-tr from-[#455976] via-[55%] via-[#2A182e]  to-[#8b3f25]'>
       <h1 className='font-poppins font-bold text-3xl lg:text-4xl tracking-wide text-center'>
@@ -53,6 +138,7 @@ export default function Home() {
         {/* Display camera component if isCamera is true, otherwise display single file upload component */}
         {isCamera ? (
           <Camera
+            isLoadingOutside={isLoading}
             imageData={imageQueryCam}
             setImageData={setImageQueryCam}
             imageMatrix={imageMatrixQuery}
@@ -98,9 +184,37 @@ export default function Home() {
             color='gradient-bp'
             size='small'
             isRounded
+            onClick={handleDownloadPDF}
             disabled={!imageQuery || !imageDataSet || imageDataSet.length <= 0}
           >
             Start Processing
+          </Button>
+        </div>
+      </section>
+      <hr className='border-1 border-slate-300 w-full' />
+      <section className='flex max-md:flex-col  w-full gap-4'>
+        <h2 className='font-poppins text-xl lg:text-2xl flex font-semibold '>
+          Output File:
+        </h2>
+        <div className='flex justify-center max-lg:flex-col flex-wrap flex-1 max-lg:w-full  max-sm  gap-5 lg:gap-10'>
+          <TextInput
+            input={outputFileName}
+            setInput={setOutputFileName}
+            placeHolder='Masukkan nama file output'
+            type='text'
+          />
+          <Button
+            color='gradient-bp'
+            size='small'
+            isRounded
+            onClick={handleDownloadPDF}
+            disabled={
+              (!imageQuery && !imageQueryCam) ||
+              !imageDataSet ||
+              imageDataSet.length <= 0
+            }
+          >
+            Download Report
           </Button>
         </div>
       </section>
