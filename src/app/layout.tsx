@@ -1,3 +1,4 @@
+import { Toaster } from 'react-hot-toast';
 import './globals.css';
 import { Inter, Poppins } from 'next/font/google';
 const inter = Inter({
@@ -29,6 +30,7 @@ export default function RootLayout({
         suppressHydrationWarning={true}
         className={`${inter.variable} ${poppins.variable}`}
       >
+        <Toaster />
         {children}
       </body>
     </html>

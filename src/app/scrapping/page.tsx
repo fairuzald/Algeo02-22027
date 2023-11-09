@@ -2,50 +2,112 @@
 
 import SingleFileUpload from '@/components/single-file-upload';
 import Switch from '@/components/switch';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Button from '@/components/button';
 
 import { useSearchParams } from 'next/navigation';
 import Camera from '@/components/camera';
 import TextInput from '@/components/text-input';
-import CustomLink from '@/components/custom-link';
 import GroupPagination, { ImageData } from '@/components/scrape-pagination';
+import { Scrapper } from '@/components/scrapper';
+import { makeApiRequest } from '@/lib/helper';
+import toast from 'react-hot-toast';
 
 export default function Home() {
   // Initialize state variables for image query, image data, texture option, specific limits, and limits count
-  const [imageQuery, setImageQuery] = useState<File | null>(null);
-  const [imageData, setImageData] = useState<ImageData[]>([]);
+  const [imageQuery, setImageQuery] = useState<string>('');
   const [isTexture, setIsTexture] = useState<boolean>(false);
-  const [isSpecificLimits, setIsSpecificLimits] = useState<boolean>(false);
-  const [limits, setLimits] = useState<number>(1);
+  const [imageMatrixQuery, setImageMatrixQuery] = useState<number[][]>([]);
+  const [imageQueryCam, setImageQueryCam] = useState<string>('');
+  const [imageDataSet, setImageDataSet] = useState<ImageData[]>([]);
+  const [imageDataSetMatrix, setImageDataSetMatrix] = useState<number[][][]>(
+    []
+  );
+  const [outputFileName, setOutputFileName] = useState<string>('');
+
   // Get the search parameters from the URL
   const searchParams = useSearchParams();
   // Determine if the camera option is selected based on the search parameters
   const isCamera = searchParams.get('camera') === 'true';
 
-  const handleCapture = (dataUrl: string) => {
-    // Convert data URL to Blob
-    fetch(dataUrl)
-      .then((res) => res.blob())
-      .then((blob) => {
-        // Convert Blob to File
-        const file = new File([blob], 'Captured Image', { type: 'image/png' });
-        // Set the image query state variable
-        setImageQuery(file);
-      });
-  };
+  const memoizedImageMatrixDataSet = useMemo(() => {
+    return imageDataSetMatrix;
+  }, [imageDataSetMatrix]);
 
-  const [link, setLink] = useState<string>('');
-  const handleGetData = async () => {
-    // Send a GET request to the API with the link and limits as query parameters
-    const response = await fetch(
-      `/api/scrape?url=${encodeURIComponent(link)}&limits=${
-        isSpecificLimits ? limits : 0
-      }`
+  const memoizedImageMatrixQuery = useMemo(() => {
+    return imageMatrixQuery;
+  }, [imageMatrixQuery]);
+
+  useEffect(() => {
+    console.log(
+      'Panjang array matrix dataset',
+      memoizedImageMatrixDataSet.length
     );
-    const data = await response.json();
-    // Set the image data state variable
-    setImageData(data);
+    console.log('Array dataset', memoizedImageMatrixDataSet);
+    console.log('Isi Query', memoizedImageMatrixQuery);
+  }, [memoizedImageMatrixDataSet, memoizedImageMatrixQuery]);
+
+  const [resultPercentages, setResultPercentages] = useState<number[]>(
+    imageDataSet.map((_, index) => (index + 1) * 10)
+  );
+
+  useEffect(() => {
+    setResultPercentages(imageDataSet.map((_, index) => (index + 1) * 10));
+  }, [imageDataSet]);
+
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const handleDownloadPDF = async () => {
+    if (
+      (imageQuery || imageQueryCam) &&
+      imageDataSet &&
+      imageDataSet.length > 0
+    ) {
+      // Convert the image query to a base64 string
+
+      // Convert the image URLs in the data set to base64 strings
+      setIsLoading(true);
+      const imageDataSetBase64 = await makeApiRequest({
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          urls: imageDataSet.map((data) => data.url),
+        }),
+        loadingMessage: 'Loading...',
+        successMessage: 'Successfully fetched images!',
+        endpoint: '/api/convert-image-to-base64',
+        onSuccess: (data) => {},
+      });
+
+      const data = {
+        image_query: isCamera ? imageQueryCam : imageQuery,
+        image_data_set: imageDataSetBase64,
+        is_texture: isTexture,
+        result_percentage_set: resultPercentages,
+        output_filename: outputFileName,
+      };
+
+      makeApiRequest({
+        body: JSON.stringify(data),
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        loadingMessage: 'Creating PDF...',
+        successMessage: 'PDF created successfully!',
+        endpoint: '/api/create-pdf-file',
+        onSuccess: (data) => {
+          // Download the PDF file
+          const pdfFilePath = data.file_path;
+          const link = document.createElement('a');
+          link.href = pdfFilePath;
+          link.download = `${outputFileName}.pdf`;
+          link.click();
+          setIsLoading(false);
+        },
+      });
+    }
   };
 
   return (
@@ -56,9 +118,19 @@ export default function Home() {
       <section>
         {/* Display camera component if isCamera is true, otherwise display single file upload component */}
         {isCamera ? (
-          <Camera onCapture={handleCapture}></Camera>
+          <Camera
+            isLoadingOutside={isLoading}
+            imageData={imageQueryCam}
+            setImageData={setImageQueryCam}
+            imageMatrix={imageMatrixQuery}
+            setImageMatrix={setImageMatrixQuery}
+          ></Camera>
         ) : (
-          <SingleFileUpload setFileChange={setImageQuery} />
+          <SingleFileUpload
+            imageBase64={imageQuery}
+            setImageBase64={setImageQuery}
+            setImageMatrix={setImageMatrixQuery}
+          />
         )}
       </section>
       <hr className='border-1 border-slate-300 w-full' />
@@ -67,73 +139,12 @@ export default function Home() {
         <h2 className='font-poppins text-xl lg:text-2xl flex font-semibold'>
           Data set input
         </h2>
-        {/* Display image data pagination component if there is image data, otherwise display data input form */}
-        {imageData.length > 0 ? (
-          <GroupPagination imageUrls={imageData} itemsPerPage={6} />
-        ) : (
-          <div className='flex gap-7 flex-col'>
-            {/* Text input for link */}
-            <TextInput
-              input={link}
-              setInput={setLink}
-              type='text'
-              placeHolder='Masukkan link web yang mau discrapping'
-            />
-            {/* Switch for specific limits */}
-            <Switch
-              checked={isSpecificLimits}
-              onChange={setIsSpecificLimits}
-              optionFalse='All data'
-              optionTrue='Specific data count'
-            />
-            <div className='w-full flex gap-3 flex-wrap'>
-              {/* Show number input for limits if specific limits is selected */}
-              {isSpecificLimits && (
-                <div className='max-w-[130px]'>
-                  <TextInput
-                    input={limits}
-                    setInput={setLimits}
-                    type='number'
-                    placeHolder='Masukkan link web yang mau discrapping'
-                  />
-                </div>
-              )}
-              {/* Button to trigger handleGetData function */}
-              <Button
-                color='gradient-bp'
-                size='small'
-                isRounded
-                disabled={!link || (limits == 0 && isSpecificLimits)}
-                onClick={handleGetData}
-              >
-                Get the data
-              </Button>
-            </div>
-          </div>
-        )}
-        {/* Display button to clear image data if there is image data */}
-        {imageData.length > 0 && (
-          <div className='mx-auto my-2'>
-            <Button
-              size='medium'
-              color='gradient-bp'
-              onClick={() => {
-                setImageData([]);
-              }}
-            >
-              Delete all data
-            </Button>
-          </div>
-        )}
-        {/* Display other input query options */}
-        <div className='flex items-center flex-wrap justify-center gap-4 py-4'>
-          <p className='text-lg lg:text-2xl font-poppins font-semibold text-gold'>
-            Other Input Query Option:
-          </p>
-          <CustomLink color='gradient-bp' href='/' size='medium'>
-            Files Upload
-          </CustomLink>
-        </div>
+        <Scrapper
+          setImageData={setImageDataSet}
+          imageData={imageDataSet}
+          setImageDataMatrix={setImageDataSetMatrix}
+          imageDataMatrix={imageDataSetMatrix}
+        />
       </section>
       <hr className='border-1 border-slate-300 w-full' />
       {/* Display CBIR processing section */}
@@ -154,9 +165,37 @@ export default function Home() {
             color='gradient-bp'
             size='small'
             isRounded
-            disabled={!imageQuery || !imageData || imageData.length <= 0}
+            onClick={handleDownloadPDF}
+            disabled={!imageQuery || !imageDataSet || imageDataSet.length <= 0}
           >
             Start Processing
+          </Button>
+        </div>
+      </section>
+      <hr className='border-1 border-slate-300 w-full' />
+      <section className='flex max-md:flex-col  w-full gap-4'>
+        <h2 className='font-poppins text-xl lg:text-2xl flex font-semibold '>
+          Output File:
+        </h2>
+        <div className='flex justify-center max-lg:flex-col flex-wrap flex-1 max-lg:w-full  max-sm  gap-5 lg:gap-10'>
+          <TextInput
+            input={outputFileName}
+            setInput={setOutputFileName}
+            placeHolder='Masukkan nama file output'
+            type='text'
+          />
+          <Button
+            color='gradient-bp'
+            size='small'
+            isRounded
+            onClick={handleDownloadPDF}
+            disabled={
+              (!imageQuery && !imageQueryCam) ||
+              !imageDataSet ||
+              imageDataSet.length <= 0
+            }
+          >
+            Download Report
           </Button>
         </div>
       </section>
