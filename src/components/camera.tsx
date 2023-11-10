@@ -1,27 +1,33 @@
 'use client';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import CustomLink from '@/components/custom-link';
 import { usePathname } from 'next/navigation';
+import { makeApiRequest } from '@/lib/helper';
+import toast from 'react-hot-toast';
 
-const Camera: React.FC<{ onCapture: (dataUrl: string) => void }> = ({
-  onCapture,
+interface CameraProps {
+  imageData: string;
+  setImageData: React.Dispatch<React.SetStateAction<string>>;
+  imageMatrix: number[][];
+  setImageMatrix: React.Dispatch<React.SetStateAction<number[][]>>;
+  isLoadingOutside?: boolean;
+}
+
+const Camera: React.FC<CameraProps> = ({
+  imageData,
+  setImageData,
+  imageMatrix,
+  setImageMatrix,
+  isLoadingOutside = false,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [image, setImage] = useState<string>('');
   const [countdown, setCountdown] = useState<number>(10);
-  console.log(image);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      if (
-        videoRef.current &&
-        videoRef.current.srcObject instanceof MediaStream
-      ) {
-        const tracks = videoRef.current.srcObject.getTracks();
-        tracks.forEach((track) => track.stop());
-      }
-    };
+    const handleBeforeUnload = () => {};
 
     window.addEventListener('beforeunload', handleBeforeUnload);
 
@@ -32,59 +38,73 @@ const Camera: React.FC<{ onCapture: (dataUrl: string) => void }> = ({
 
   useEffect(() => {
     // Mengakses webcam
-    navigator.mediaDevices
-      .getUserMedia({ video: true })
-      .then((stream) => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+    navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    });
 
     // Mengatur interval waktu untuk menangkap gambar
     const interval = setInterval(() => {
-      captureImage();
-      setCountdown(10);
-    }, 10000); // Menangkap gambar setiap 10 detik
+      if (!isLoading && !isLoadingOutside) {
+        captureImage();
+      }
+    }, 10000); // Menangkap gambar setiap 15 detik
 
     return () => {
       clearInterval(interval);
-
-      // Menutup kamera ketika komponen di-unmount
-      if (
-        videoRef.current &&
-        videoRef.current.srcObject instanceof MediaStream
-      ) {
-        const tracks = videoRef.current.srcObject.getTracks();
-        tracks.forEach((track) => track.stop());
-      }
     };
-  }, []);
+  }, [isLoading, isLoadingOutside]);
 
   // countdown reduce
   useEffect(() => {
     const interval = setInterval(() => {
-      setCountdown((prev) => prev - 1);
+      if (countdown > 0 && !isLoading && !isLoadingOutside) {
+        setCountdown((prev) => prev - 1);
+      } else {
+        clearInterval(interval);
+        setCountdown(10);
+      }
     }, 1000);
 
     return () => {
       clearInterval(interval);
     };
-  }, [countdown]);
+  }, [countdown, isLoading]);
+  // useMemo(() => {
+  //   console.log('imageMatrix', imageMatrix);
+  // }, [imageMatrix]);
+  const captureImage = async () => {
+    setIsLoading(true); // Set isLoading to true saat proses API dimulai
 
-  const captureImage = () => {
     if (canvasRef.current && videoRef.current) {
       const context = canvasRef.current.getContext('2d');
       if (context) {
         context.drawImage(videoRef.current, 0, 0, 640, 480);
         const dataUrl = canvasRef.current.toDataURL('image/png');
-        setImage(dataUrl);
-        onCapture(dataUrl);
+        if (dataUrl) {
+          makeApiRequest({
+            body: JSON.stringify({ image_data: dataUrl }),
+            method: 'POST',
+            loadingMessage: 'Camera image processing...',
+            successMessage: 'Camera image processing successful!',
+            endpoint: '/api/convert-camera',
+            onSuccess: (data) => {
+              if (data.matrix) {
+                setImageMatrix(data.matrix);
+                setImageData(data.base64);
+                setIsLoading(false);
+              }
+            },
+          });
+        } else {
+          setIsLoading(false); // Set isLoading to false saat proses API selesai
+          toast.error('Failed to capture image!');
+        }
       }
     }
   };
+
   const pathname = usePathname();
   return (
     <div className='flex flex-col gap-8 items-center justify-center'>
@@ -95,6 +115,7 @@ const Camera: React.FC<{ onCapture: (dataUrl: string) => void }> = ({
             width={640}
             height={480}
             autoPlay
+            playsInline
             className='h-full max-lg:max-h-[280px] lg:h-[320px] 2xl:h-[480px] w-full bg-transparent'
           ></video>
 
@@ -102,7 +123,7 @@ const Camera: React.FC<{ onCapture: (dataUrl: string) => void }> = ({
             ref={canvasRef}
             width={640}
             height={480}
-            style={{ display: 'none' }}
+            className='hidden'
           ></canvas>
           <p className='text-white font-poppins text-base lg:text-xl text-center'>
             Video
@@ -112,16 +133,22 @@ const Camera: React.FC<{ onCapture: (dataUrl: string) => void }> = ({
           <Image
             width={640}
             height={480}
-            src={image ? image : '/white.jpg'}
-            alt='Captured image'
+            src={imageData ? imageData : '/white.jpg'}
+            alt='Captured imageData'
             priority
             className='h-full max-lg:max-h-[280px] lg:h-[320px] 2xl:h-[480px] w-full bg-transparent object-contain object-center'
           />
           <p className='text-white font-poppins text-base lg:text-xl text-center'>
-            {countdown > 0 ? 'Catch Image in ' + countdown : 'Cheese!!!'}{' '}
-            {countdown > 0 && countdown == 1
-              ? 'second'
-              : countdown > 0 && 'seconds'}
+            {isLoading || isLoadingOutside
+              ? 'Data gambar sedang diolah'
+              : countdown > 0
+              ? 'Catch Image in ' + countdown
+              : 'Cheese!!!'}{' '}
+            {!isLoading &&
+              !isLoadingOutside &&
+              (countdown > 0 && countdown == 1
+                ? 'second'
+                : countdown > 0 && 'seconds')}
           </p>
         </div>
       </div>

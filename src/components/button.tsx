@@ -6,6 +6,7 @@ interface ButtonProps {
   children: React.ReactNode;
   onClick?: () => void;
   disabled?: boolean;
+  type?: 'submit' | 'button';
 }
 const Button: React.FC<ButtonProps> = ({
   color,
@@ -14,13 +15,15 @@ const Button: React.FC<ButtonProps> = ({
   children,
   onClick,
   disabled,
+  type,
 }) => {
   const sizeEffect = {
     small: 'py-2 px-8',
     medium: 'py-3 px-4',
   };
   const colorEffect = {
-    'gradient-bp': 'bg-gradient-to-r from-[#1363D9] to-[#7939d4]',
+    'gradient-bp':
+      'bg-gradient-to-r from-[#1363D9] to-[#7939d4] hover:brightness-90',
   };
   return (
     <button
@@ -31,7 +34,7 @@ const Button: React.FC<ButtonProps> = ({
         isRounded ? 'rounded-full' : 'rounded-lg'
       } font-semibold font-poppins text-center ${sizeEffect[size]} ${
         colorEffect[color]
-      } disabled:cursor-not-allowed disabled:opacity-80`}
+      } disabled:cursor-not-allowed disabled:opacity-80 disabled:bg-[#1363D9] transition-all duration-300`}
     >
       {children}
     </button>

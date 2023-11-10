@@ -1,79 +1,63 @@
-'use client';
+// Importing the necessary libraries and components
 import Button from '@/components/button';
 import CustomLink from '@/components/custom-link';
 import FileUploadEmpty from '@/components/icons/file-upload-empty-icon';
+import { makeApiRequest } from '@/lib/helper';
+import { IMAGE_FORMAT } from '@/types/image-format';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { type } from 'os';
 import React, {
   useState,
   ChangeEvent,
-  FormEvent,
   useEffect,
   useRef,
   DragEvent,
 } from 'react';
+import { toast } from 'react-hot-toast';
+
+// Interface for the component props
 interface SingleFileUploadProps {
-  setFileChange: React.Dispatch<React.SetStateAction<File | null>>;
+  setImageBase64: React.Dispatch<React.SetStateAction<string>>;
+  imageBase64: string;
+  setImageMatrix: React.Dispatch<React.SetStateAction<number[][]>>;
 }
 
+// The SingleFileUpload component
 const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
-  setFileChange,
+  imageBase64,
+  setImageBase64,
+  setImageMatrix,
 }) => {
-  const [file, setFile] = useState<File | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  // State variables for managing the fileChange and image URL
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const pathname = usePathname();
-  useEffect(() => {
-    // Check if there is an image URL in the localStorage
-    const storedImageUrl = localStorage.getItem('imageUrl');
-    if (storedImageUrl) {
-      setImageUrl(storedImageUrl);
-    }
-    const storedFile = localStorage.getItem('fileData');
-    if (storedFile) {
-      setFile(JSON.parse(storedFile));
-    }
-  }, []);
 
-  useEffect(() => {
-    // Create a Data URL for the selected file and set it as the image URL
-    if (file && file instanceof File) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setImageUrl(base64String);
-        localStorage.setItem('imageUrl', base64String);
-        localStorage.setItem('fileData', JSON.stringify(file));
-      };
-      reader.readAsDataURL(file);
-    }
-  }, [file]);
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // if (file) {
-    //   const formData = new FormData();
-    //   formData.append('file', file);
-
-    //   const response = await fetch('/api/uploadfile/', {
-    //     method: 'POST',
-    //     body: formData,
-    //   });
-
-    //   const data = await response.json();
-    //   console.log(data);
-    // }
-  };
-
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      // Call the callback function with the selected file
-      setFileChange(selectedFile);
+
+    if (selectedFile && IMAGE_FORMAT.includes(selectedFile.type)) {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      // Make API request hadnling
+      makeApiRequest({
+        body: formData,
+        method: 'POST',
+        loadingMessage: 'File image processing...',
+        successMessage: 'File image processing successful!',
+        endpoint: '/api/convert',
+        onSuccess: (data) => {
+          setImageFile(selectedFile);
+          if (data.matrix) {
+            setImageMatrix(data.matrix);
+          }
+          if (data.base64) {
+            setImageBase64(data.base64);
+          }
+        },
+      });
     } else {
-      // Call the callback function with null if no file is selected
-      setFileChange(null);
+      toast.error('Upload file dengan ekstensi png atau jpeg');
+      setImageFile(null);
     }
   };
 
@@ -92,25 +76,28 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const droppedFile = e.dataTransfer.files?.[0];
-    if (droppedFile) {
-      setFile(droppedFile);
+    if (droppedFile && IMAGE_FORMAT.includes(droppedFile.type)) {
+      setImageFile(droppedFile);
+    } else {
+      toast.error('Upload file dengan ekstensi png, jpg, atau jpeg');
     }
   };
 
   const handleDelete = () => {
-    setFile(null);
-    setImageUrl(null);
-    localStorage.removeItem('imageUrl');
+    setImageFile(null);
+    setImageBase64('');
+    setImageMatrix([]);
   };
-
+  console.log('ini base', imageBase64, 'ini file', imageFile);
+  // Render the component
   return (
-    <form onSubmit={handleSubmit}>
+    <div>
       <div className='flex flex-col lg:flex-row gap-10 items-center lg:items-stretch justify-center'>
-        {imageUrl && file ? (
+        {imageBase64 && imageFile ? (
           <div className='rounded-xl overflow-hidden'>
             <Image
-              src={imageUrl}
-              alt={file.name ? file.name : 'Image Query'}
+              src={imageBase64}
+              alt={imageFile.name ? imageFile.name : 'Image Query'}
               width={550}
               height={500}
               className='h-[250px] lg:h-[340px] w-full lg:w-[550px] object-contain rounded-xl'
@@ -141,12 +128,14 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
               Image Input
             </h2>
             <div className='space-y-3'>
-              <p className='text-white font-poppins text-lg'>{file?.name}</p>
+              <p className='text-white font-poppins text-lg'>
+                {imageFile?.name}
+              </p>
               <div className='flex gap-4'>
                 <Button onClick={handleClick} size='medium' color='gradient-bp'>
-                  Insert {file ? 'a New ' : 'an'} Image
+                  Insert {imageFile ? 'a New ' : 'an'} Image
                 </Button>
-                {file && (
+                {imageFile && (
                   <Button
                     onClick={handleDelete}
                     size='medium'
@@ -178,7 +167,7 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
           </CustomLink>
         </div>
       </div>
-    </form>
+    </div>
   );
 };
 
