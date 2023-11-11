@@ -3,7 +3,9 @@ from typing import Dict
 from typing import Union
 import io
 import cv2
+import time
 from fastapi import FastAPI, File,  Request, UploadFile
+from fastapi.responses import JSONResponse
 from typing import List
 from urllib.parse import urlparse, urlunparse
 from fastapi.responses import StreamingResponse
@@ -11,6 +13,7 @@ import numpy as np
 from pydantic import BaseModel
 from api.object_detector import ObjectDetector
 from api.scraper import ImageScraper
+from api.cbir_color import ImageComparator
 from fastapi.middleware.cors import CORSMiddleware
 from api.image_processing import ImageProcessing
 from api.save import PDFCreator
@@ -53,6 +56,21 @@ async def convert_camera(request: Request):
     body = await request.json()
     image_data = body.get("image_data")
     return await imageProcessor.convert_camera(image_data)
+
+image_comparator = ImageComparator()
+@app.post("/api/compare-images-cbir-color")
+async def compare_images(file: UploadFile = File(...)):
+    start_time = time.time()
+    
+    input_image = Image.open(io.BytesIO(await file.read()))
+    input_histogram = image_comparator.compute_global_color_histogram_hsv(input_image)
+    image_comparator.load_dataset_histograms()
+
+    similarities = image_comparator.compare_images(input_histogram)
+
+    elapsed_time = time.time() - start_time
+
+    return similarities, elapsed_time
     
 scraper = ImageScraper()
 @app.get("/api/scrape")
