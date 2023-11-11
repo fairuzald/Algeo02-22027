@@ -1,185 +1,154 @@
 'use client';
-import SingleFileUpload from '@/components/single-file-upload';
-import MultipleFileUpload from '@/components/multiple-file-upload';
-import Switch from '@/components/switch';
-import { useEffect, useMemo, useState } from 'react';
 import Button from '@/components/button';
-
-import { useSearchParams } from 'next/navigation';
-import Camera from '@/components/camera';
 import CustomLink from '@/components/custom-link';
-import { makeApiRequest } from '@/lib/helper';
-import TextInput from '@/components/text-input';
+import { features } from '@/const/feature';
+import { howToUseSteps } from '@/const/howtouse';
+import Image from 'next/image';
+interface Feature {
+  title: string;
+  description: string;
+  options?: string[];
+}
+interface Step {
+  title: string;
+  description: string;
+  options?: string[];
+}
+interface SectionProps {
+  title1: string;
+  title2: string;
+  items: (Feature | Step)[];
+}
 
 export default function Home() {
   // Image Query Data
-  const [imageQuery, setImageQuery] = useState<string>('');
-  const [imageMatrixQuery, setImageMatrixQuery] = useState<number[][]>([]);
-  const [imageQueryCam, setImageQueryCam] = useState<string>('');
-
-  // Image Data Set
-  const [imageDataSet, setImageDataSet] = useState<string[]>([]);
-  const [imageMatrixDataSet, setImageMatrixDataSet] = useState<number[][][]>(
-    []
+  const FeatureSection: React.FC<SectionProps> = ({
+    title1,
+    title2,
+    items,
+  }) => (
+    <section className='px-8 sm:px-10 md:px-20 lg:px-40 flex flex-col items-center justify-center gap-2 lg:gap-10 w-full'>
+      <h2 className='font-poppins text-3xl text-gold-light font-semibold text-center'>
+        {title1}
+      </h2>
+      <div className='container mx-auto my-8 p-8 lg:p-10 font-poppins text-base bg-[#0B2545] shadow-md rounded-xl'>
+        <h3 className='text-xl lg:text-3xl font-bold mb-6 text-center'>
+          {title2}
+        </h3>
+        <ul className='list-decimal pl-4'>
+          {items.map((item, index) => (
+            <li key={index} className='mb-8 text-sm lg:text-base'>
+              <h4 className='font-semibold mb-4'>{item.title}</h4>
+              {item.options ? (
+                <ul className='list-disc pl-4 lg:pl-6 font-normal'>
+                  {item.options.map((option, i) => (
+                    <li key={i}>{option}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p>{item.description}</p>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
   );
-
-  // Result Percentage
-  const [resultPercentages, setResultPercentages] = useState<number[]>(
-    imageDataSet.map((_, index) => (index + 1) * 10)
-  );
-
-  // Feature State
-  const [isTexture, setIsTexture] = useState<boolean>(false);
-  const searchParams = useSearchParams();
-  const isCamera = searchParams.get('camera') === 'true';
-  const [outputFileName, setOutputFileName] = useState<string>('');
-
-  const memoizedImageMatrixDataSet = useMemo(() => {
-    return imageMatrixDataSet;
-  }, [imageMatrixDataSet]);
-
-  const memoizedImageMatrixQuery = useMemo(() => {
-    return imageMatrixQuery;
-  }, [imageMatrixQuery]);
-
-  useEffect(() => {
-    console.log(
-      'Panjang array matrix dataset',
-      memoizedImageMatrixDataSet.length
-    );
-    console.log('Array dataset', memoizedImageMatrixDataSet);
-    console.log('Isi Query', memoizedImageMatrixQuery);
-  }, [memoizedImageMatrixDataSet, memoizedImageMatrixQuery]);
-
-  useEffect(() => {
-    setResultPercentages(imageDataSet.map((_, index) => (index + 1) * 10));
-  }, [imageDataSet]);
-
-  const handleDownloadPDF = async () => {
-    if (
-      (imageQuery || imageQueryCam) &&
-      imageDataSet &&
-      imageDataSet.length > 0
-    ) {
-      const data = {
-        image_query: isCamera ? imageQueryCam : imageQuery,
-        image_data_set: imageDataSet,
-        is_texture: isTexture,
-        result_percentage_set: resultPercentages,
-        output_filename: outputFileName,
-      };
-
-      makeApiRequest({
-        body: JSON.stringify(data),
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        loadingMessage: 'Creating PDF...',
-        successMessage: 'PDF created successfully!',
-        endpoint: '/api/create-pdf-file',
-        onSuccess: (data) => {
-          // Download the PDF file
-          const pdfFilePath = data.file_path;
-          const link = document.createElement('a');
-          link.href = pdfFilePath;
-          link.download = `${outputFileName}.pdf`;
-          link.click();
-        },
-      });
-    }
-  };
-
   return (
-    <main className='flex gap-8 text-white lg:gap-10 min-h-screen flex-col py-20 px-8 sm:px-10 md:px-20 lg:px-40 bg-gradient-to-tr from-[#455976] via-[55%] via-[#2A182e]  to-[#8b3f25]'>
-      <h1 className='font-poppins font-bold text-3xl lg:text-4xl tracking-wide text-center'>
-        Reverse Image Search
-      </h1>
-      <section>
-        {isCamera ? (
-          <Camera
-            imageData={imageQueryCam}
-            setImageData={setImageQueryCam}
-            imageMatrix={imageMatrixQuery}
-            setImageMatrix={setImageMatrixQuery}
-          ></Camera>
-        ) : (
-          <SingleFileUpload
-            imageBase64={imageQuery}
-            setImageBase64={setImageQuery}
-            setImageMatrix={setImageMatrixQuery}
-          />
-        )}
-      </section>
-      <hr className='border-1 border-slate-300 w-full' />
-      <section className='flex flex-col gap-4'>
-        <h2 className='font-poppins text-xl lg:text-2xl flex font-semibold'>
-          Data set input
-        </h2>
-        <MultipleFileUpload
-          setImageBase64s={setImageDataSet}
-          imageBase64s={imageDataSet}
-          setMatrixImages={setImageMatrixDataSet}
+    <main className='flex gap-8 pb-20 text-white w-full lg:gap-10 min-h-screen flex-col bg-gradient-to-tr from-[#455976] via-[55%] via-[#2A182e]  to-[#8b3f25]'>
+      <div className='relative h-[calc(100vh-100px)] w-full overflow-hidden'>
+        <Image
+          alt='Tes'
+          src={'/white.jpg'}
+          width={1920}
+          height={1080}
+          className='object-center object-cover w-full h-full'
         />
-        <div className='flex items-center flex-wrap justify-center gap-4 py-4'>
-          <p className='text-lg lg:text-2xl font-poppins font-semibold text-gold'>
-            Other Input Query Option:
-          </p>
-          <CustomLink color='gradient-bp' href='/scrapping' size='medium'>
-            Data Scrapping
+        <div className='absolute z-10 left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center gap-6'>
+          <h1 className='font-poppins text-4xl font-bold bg-gradient-to-r from-[#1363D9] to-[#7939d4] bg-clip-text text-transparent'>
+            Cukurukuk
+          </h1>
+          <CustomLink href='/cbir' isRounded size='large' color='gradient-bp'>
+            CBIR
           </CustomLink>
         </div>
-      </section>
-      <hr className='border-1 border-slate-300 w-full' />
-      <section className='flex flex-col lg:flex-row justify-between items-center w-full gap-4'>
-        <h2 className='font-poppins text-xl lg:text-2xl flex font-semibold '>
-          CBIR Processing
+      </div>
+      <section className='py-20 px-8 sm:px-10 md:px-20 lg:px-40 flex flex-col items-center justify-center gap-10'>
+        <h2 className='text-gold-light font-poppins text-3xl font-semibold text-center'>
+          Our Video
         </h2>
-        <div className='flex flex-1 max-lg:w-full flex-wrap max-sm px-10 gap-5 lg:gap-10 items-center justify-around md:justify-between'>
-          <Switch
-            checked={isTexture}
-            onChange={setIsTexture}
-            optionFalse='Color'
-            optionTrue='Texture'
-          />
-          <Button
-            color='gradient-bp'
-            size='small'
-            isRounded
-            disabled={!imageQuery || !imageDataSet || imageDataSet.length <= 0}
-          >
-            Start Processing
-          </Button>
+        <iframe
+          className='h-[250px] md:h-[300px] w-full max-w-[400px] lg:h-[20vw] lg:w-[30vw] lg:max-w-[600px] lg:max-h-[500px] video__iframe'
+          src='https://www.youtube.com/embed/SLfZstRNbcU?autoplay=1'
+          frameBorder='0'
+          allowFullScreen
+        ></iframe>
+      </section>
+      <section className='px-8 sm:px-10 md:px-20 lg:px-40 flex flex-col gap-10'>
+        <h2 className='text-gold-light font-poppins text-3xl font-semibold text-center'>
+          Konsep
+        </h2>
+        <div className=' flex flex-col items-center justify-center p-8 lg:p-10 font-poppins text-base bg-[#0B2545] shadow-md rounded-xl'>
+          <h3 className='text-xl lg:text-3xl font-bold mb-6 text-white'>
+            Content-Based Image Retrieval (CBIR)
+          </h3>
+          <div className='mb-8 text-white text-sm lg:text-base'>
+            <p>
+              Dalam Content-Based Image Retrieval (CBIR), gambar diwakili
+              sebagai matriks piksel atau keabuan, kemudian diubah menjadi
+              vektor-fitur untuk perbandingan. Matriks piksel atau keabuan
+              diubah menjadi vektor satu dimensi dengan menggabungkan nilai
+              intensitas piksel. Proses cosine similarity digunakan untuk
+              membandingkan vektor-fitur gambar query dengan vektor-fitur
+              dataset.{' '}
+            </p>
+          </div>
+
+          <div className='mb-8 '>
+            <h2 className='text-sm lg:text-xl font-semibold mb-4 text-white'>
+              CBIR dengan Parameter Warna
+            </h2>
+            <p className='text-white text-sm lg:text-base'>
+              CBIR dengan parameter warna melibatkan konversi gambar ke format
+              HSV, pencarian histogram warna (global dan blok), dan penggunaan
+              metode cosine similarity untuk membandingkan vektor-fitur warna
+              antara gambar query dan dataset.
+            </p>
+          </div>
+
+          <div className='mb-8'>
+            <h2 className='text-sm lg:text-xl font-semibold mb-4 text-white'>
+              CBIR dengan Parameter Tekstur
+            </h2>
+            <p className='text-white  text-sm lg:text-base'>
+              CBIR dengan parameter tekstur melibatkan konversi gambar ke skala
+              keabuan, pembuatan co-occurrence matrix untuk ekstraksi tekstur,
+              dan pengukuran tingkat kemiripan antara vektor-fitur tekstur dari
+              gambar query dan dataset menggunakan cosine similarity.
+            </p>
+          </div>
+
+          <p className='text-white'>
+            Integrasi kedua parameter ini memungkinkan CBIR untuk memberikan
+            hasil pencarian yang lebih akurat dan efisien, mengurangi
+            ketergantungan pada pencarian berbasis teks atau kata kunci, dan
+            memberikan pengalaman eksplorasi koleksi gambar yang lebih intuitif.
+            Dengan demikian, CBIR menjadi alat yang efektif dalam membantu
+            pengguna mengeksplorasi dan mengakses gambar berdasarkan kesamaan
+            nilai citra visual.
+          </p>
         </div>
       </section>
-      <hr className='border-1 border-slate-300 w-full' />
-      <section className='flex max-md:flex-col  w-full gap-4'>
-        <h2 className='font-poppins text-xl lg:text-2xl flex font-semibold '>
-          Output File:
-        </h2>
-        <div className='flex justify-center max-lg:flex-col flex-wrap flex-1 max-lg:w-full  max-sm  gap-5 lg:gap-10'>
-          <TextInput
-            input={outputFileName}
-            setInput={setOutputFileName}
-            placeHolder='Masukkan nama file output'
-            type='text'
-          />
-          <Button
-            color='gradient-bp'
-            size='small'
-            isRounded
-            onClick={handleDownloadPDF}
-            disabled={
-              (!imageQuery && !imageQueryCam) ||
-              !imageDataSet ||
-              imageDataSet.length <= 0 ||
-              !outputFileName
-            }
-          >
-            Download Report
-          </Button>
-        </div>
-      </section>
+      <FeatureSection
+        title1='Feature?'
+        title2='Fitur Aplikasi'
+        items={features}
+      />
+      <FeatureSection
+        title1='How to use?'
+        title2='Panduan Penggunaan Aplikasi'
+        items={howToUseSteps}
+      />
     </main>
   );
 }

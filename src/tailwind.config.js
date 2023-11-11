@@ -13,6 +13,7 @@ module.exports = {
       },
       colors: {
         gold: '#dbb88b',
+        'gold-light': '#EAB308',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',

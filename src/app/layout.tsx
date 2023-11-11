@@ -1,6 +1,7 @@
 import { Toaster } from 'react-hot-toast';
 import './globals.css';
 import { Inter, Poppins } from 'next/font/google';
+import NavBar from '@/components/navbar';
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
@@ -31,6 +32,7 @@ export default function RootLayout({
         className={`${inter.variable} ${poppins.variable}`}
       >
         <Toaster />
+        <NavBar />
         {children}
       </body>
     </html>
