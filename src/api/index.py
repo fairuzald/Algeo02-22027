@@ -57,20 +57,23 @@ async def convert_camera(request: Request):
     image_data = body.get("image_data")
     return await imageProcessor.convert_camera(image_data)
 
-image_comparator = ImageComparator()
-@app.post("/api/compare-images-cbir-color")
-async def compare_images(file: UploadFile = File(...)):
-    start_time = time.time()
-    
-    input_image = Image.open(io.BytesIO(await file.read()))
-    input_histogram = image_comparator.compute_global_color_histogram_hsv(input_image)
-    image_comparator.load_dataset_histograms()
+@app.post("/api/cbir-color")
+async def compare_images(matrix_query: List[List[List[int]]], matrix_data_set: List[List[List[List[int]]]]):
+    try:
+        print(f"Received matrix_query: ")
+        print(f"Received matrix_data_set: ")
 
-    similarities = image_comparator.compare_images(input_histogram)
+        start_time = time.time()
+        image_comparator = ImageComparator(matrix_data_set)
+        image_comparator.load_dataset_histograms()
+        input_histogram = image_comparator.compute_global_color_histogram_hsv(matrix_query)
+        similarities = image_comparator.compare_images(input_histogram)
+        elapsed_time = time.time() - start_time
+        return {"similarities": similarities, "elapsed_time": elapsed_time}
+    except Exception as e:
+        print(f"Error in compare_images: {e}")
+        raise
 
-    elapsed_time = time.time() - start_time
-
-    return similarities, elapsed_time
     
 scraper = ImageScraper()
 @app.get("/api/scrape")

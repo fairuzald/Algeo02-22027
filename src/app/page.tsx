@@ -14,25 +14,24 @@ import TextInput from '@/components/text-input';
 export default function Home() {
   // Image Query Data
   const [imageQuery, setImageQuery] = useState<string>('');
-  const [imageMatrixQuery, setImageMatrixQuery] = useState<number[][]>([]);
+  const [imageMatrixQuery, setImageMatrixQuery] = useState<number[][][]>([]);
   const [imageQueryCam, setImageQueryCam] = useState<string>('');
 
   // Image Data Set
   const [imageDataSet, setImageDataSet] = useState<string[]>([]);
-  const [imageMatrixDataSet, setImageMatrixDataSet] = useState<number[][][]>(
+  const [imageMatrixDataSet, setImageMatrixDataSet] = useState<number[][][][]>(
     []
   );
 
   // Result Percentage
-  const [resultPercentages, setResultPercentages] = useState<number[]>(
-    imageDataSet.map((_, index) => (index + 1) * 10)
-  );
+  const [resultPercentages, setResultPercentages] = useState<number[]>([]);
 
   // Feature State
   const [isTexture, setIsTexture] = useState<boolean>(false);
   const searchParams = useSearchParams();
   const isCamera = searchParams.get('camera') === 'true';
   const [outputFileName, setOutputFileName] = useState<string>('');
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
 
   const memoizedImageMatrixDataSet = useMemo(() => {
     return imageMatrixDataSet;
@@ -51,9 +50,7 @@ export default function Home() {
     console.log('Isi Query', memoizedImageMatrixQuery);
   }, [memoizedImageMatrixDataSet, memoizedImageMatrixQuery]);
 
-  useEffect(() => {
-    setResultPercentages(imageDataSet.map((_, index) => (index + 1) * 10));
-  }, [imageDataSet]);
+  console.log('result', resultPercentages);
 
   const handleDownloadPDF = async () => {
     if (
@@ -90,6 +87,35 @@ export default function Home() {
     }
   };
 
+  const handleCBIR = async () => {
+    if (
+      imageMatrixDataSet &&
+      imageMatrixDataSet.length > 0 &&
+      imageMatrixQuery
+    ) {
+      const data = JSON.stringify({
+        matrix_query: imageMatrixQuery,
+        matrix_data_set: imageMatrixDataSet,
+      });
+      makeApiRequest({
+        body: data,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        loadingMessage: 'Sending request...',
+        successMessage: 'Request successful!',
+        endpoint: '/api/cbir-color',
+        onSuccess: (data) => {
+          // Handle the response data here
+          console.log('Response data:', data);
+          setElapsedTime(data.elapsed_time);
+          setResultPercentages(data.similarities);
+        },
+      });
+    }
+  };
+
   return (
     <main className='flex gap-8 text-white lg:gap-10 min-h-screen flex-col py-20 px-8 sm:px-10 md:px-20 lg:px-40 bg-gradient-to-tr from-[#455976] via-[55%] via-[#2A182e]  to-[#8b3f25]'>
       <h1 className='font-poppins font-bold text-3xl lg:text-4xl tracking-wide text-center'>
@@ -120,6 +146,7 @@ export default function Home() {
           setImageBase64s={setImageDataSet}
           imageBase64s={imageDataSet}
           setMatrixImages={setImageMatrixDataSet}
+          percentages={resultPercentages}
         />
         <div className='flex items-center flex-wrap justify-center gap-4 py-4'>
           <p className='text-lg lg:text-2xl font-poppins font-semibold text-gold'>
@@ -147,6 +174,7 @@ export default function Home() {
             size='small'
             isRounded
             disabled={!imageQuery || !imageDataSet || imageDataSet.length <= 0}
+            onClick={handleCBIR}
           >
             Start Processing
           </Button>

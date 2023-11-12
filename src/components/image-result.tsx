@@ -20,7 +20,7 @@ export default function ImageResult({
           alt={imageTitle || 'Image'}
           width={1920}
           height={1020}
-          className='w-full h-full object-cover object-center'
+          className='w-full h-full object-contain object-center'
         />
         {percentage && (
           <p
@@ -30,7 +30,7 @@ export default function ImageResult({
             }}
             className='p-4 lg:p-8 font-poppins text-[#dbb88b] text-base lg:text-xl font-bold absolute z-10 left-1/2 -translate-x-1/2 bottom-2'
           >
-            {percentage}%
+            {percentage.toPrecision(6)}%
           </p>
         )}
       </div>

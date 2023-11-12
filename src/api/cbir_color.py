@@ -1,16 +1,12 @@
 import numpy as np
-from fastapi import FastAPI
 from typing import List
-
-app = FastAPI()
 
 class ImageComparator:
     def __init__(self, dataset_matrices: List[List[List[int]]]):
         self.dataset_matrices = dataset_matrices
         self.dataset_histograms = []
 
-    @staticmethod
-    def rgb_to_hsv(r, g, b):
+    def rgb_to_hsv(self, r, g, b):
         r, g, b = r / 255.0, g / 255.0, b / 255.0
         cmax = np.maximum(np.maximum(r, g), b)
         cmin = np.minimum(np.minimum(r, g), b)
@@ -27,6 +23,7 @@ class ImageComparator:
         return h, s, v
 
     def compute_global_color_histogram_hsv(self, image_matrix):
+        image_matrix = np.array(image_matrix)  # Convert to NumPy array
         hsv = np.stack(self.rgb_to_hsv(image_matrix[..., 0], image_matrix[..., 1], image_matrix[..., 2]), axis=-1)
 
         # define bin edges
@@ -51,7 +48,7 @@ class ImageComparator:
         input_histogram = input_histogram.flatten()
         dataset_histograms = [hist.flatten() for hist in self.dataset_histograms]
 
-        similarities = [self.cosine_similarity(input_histogram, hist) for hist in dataset_histograms]
+        similarities = [self.cosine_similarity(input_histogram, hist)*100 for hist in dataset_histograms]
 
         return similarities
 

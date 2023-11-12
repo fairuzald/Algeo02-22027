@@ -19,22 +19,29 @@ const GroupPagination: React.FC<GroupPaginationProps> = ({
   // Calculate the index of the first and last item on the current page
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
+  console.log(percentages);
 
   // Get the files and image URLs for the current page
   const currentFiles = files.slice(startIndex, endIndex);
-  const currentImageUrls = imageUrls.slice(startIndex, endIndex);
+  const currentImage = imageUrls.slice(startIndex, endIndex);
 
   return (
     <div className='flex flex-col items-center justify-center gap-10'>
       <div className='flex flex-wrap gap-5 lg:gap-6 items-center justify-center w-full min-h-[300]'>
-        {currentImageUrls.map((imageUrl, index) => (
-          <ImageResult
-            key={currentFiles[index]?.name || index}
-            imageUrl={imageUrl}
-            imageTitle={currentFiles[index]?.name}
-            percentage={percentages && percentages[index]}
-          />
-        ))}
+        {files.map((file, index) => {
+          const imageUrl = imageUrls[index];
+          const percentage = percentages && percentages[index];
+          if (currentImage.includes(imageUrl)) {
+            return (
+              <ImageResult
+                key={file?.name || index}
+                imageUrl={imageUrl}
+                imageTitle={file?.name}
+                percentage={percentage}
+              />
+            );
+          }
+        })}
       </div>
       <Pagination
         numberPage={Math.ceil(files.length / itemsPerPage)}
