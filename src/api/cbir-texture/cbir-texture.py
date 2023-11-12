@@ -2,103 +2,76 @@ from PIL import Image
 import numpy as np
 import os
 
-def convert_to_grayscale(img_array):
-    # Mengambil komponen R, G, dan B dari gambar
-    R, G, B = img_array[:,:,0], img_array[:,:,1], img_array[:,:,2]
-    
-    # Menghitung grayscale
-    grayscale = 0.29 * R + 0.587 * G + 0.114 * B
-    
-    # Mengubah grayscale menjadi integer
-    grayscale = grayscale.astype(np.uint8)
-    
-    return grayscale
+# NB : SEMUA FUNGSI DISINI PARAMETERNYA HARUS IMAGE YANG SUDAH DICONVERT KE BENTUK MATRIXNYA BUKAN PATH DARI IMAGENYA
+class ImageComparatorByTexture:
+    def __init__(self, distance=1, levels=256):
+        self.distance = distance
+        self.levels = levels
 
-def quantize_grayscale(img_array, levels=256):
-    # Mengubah gambar menjadi grayscale
-    img = convert_to_grayscale(img_array)
-    
-    # Melakukan kuantisasi nilai grayscale (0-255, unsigned int)
-    img_quantized = (img * levels / 256).astype(np.uint8) * (256 // levels)
-    
-    return img_quantized
+    def convert_to_grayscale(self, img_matrix):
+        R, G, B = img_matrix[:,:,0], img_matrix[:,:,1], img_matrix[:,:,2]
+        grayscale = 0.29 * R + 0.587 * G + 0.114 * B
+        grayscale = grayscale.astype(np.uint8)
+        return grayscale
 
-def create_glcm(img_array, distance= 1):
-    # Inisialisasi matriks kosong
-    glcm = np.zeros((256, 256), dtype=int)
+    def quantize_grayscale(self, img_matrix):
+        img = self.convert_to_grayscale(img_matrix)
+        img_quantized = (img * self.levels / 256).astype(np.uint8) * (256 // self.levels)
+        return img_quantized
 
-    # Isi matriks
-    first = img_array[distance:, :]
-    second = img_array[:-distance, :]
-    for i, j in zip(first.ravel(), second.ravel()):
-        glcm[i, j] += 1
-        
-    return glcm
+    def create_glcm(self, img_matrix):
+        glcm = np.zeros((256, 256), dtype=int)
+        first = img_matrix[self.distance:, :]
+        second = img_matrix[:-self.distance, :]
+        for i, j in zip(first.ravel(), second.ravel()):
+            glcm[i, j] += 1
+        return glcm
 
-def normalize(matrix):
-    # Normalisasi matriks
-    symetric = matrix+matrix.T
-    return symetric/symetric.sum()
+    def normalize(self, img_matrix):
+        symetric = img_matrix+img_matrix.T
+        return symetric/symetric.sum()
 
-def calculate_contrast(matrix):
-    contrast = 0
-    # Hitung kontras
-    for i in range(256):
-        for j in range(256):
-            contrast += ((i - j) ** 2) * matrix[i][j]
-    return contrast
+    def calculate_contrast(self, img_matrix):
+        contrast = 0
+        for i in range(256):
+            for j in range(256):
+                contrast += ((i - j) ** 2) * img_matrix[i][j]
+        return contrast
 
-def calculate_entropy(matrix):
-    entropy = 0
-    # Menghitung entropy
-    for i in range(256):
-        for j in range(256):
-            if matrix[i][j] > 0:
-                entropy += matrix[i][j] * np.log(matrix[i][j])
-    return -entropy
+    def calculate_entropy(self, img_matrix):
+        entropy = 0
+        for i in range(256):
+            for j in range(256):
+                if img_matrix[i][j] > 0:
+                    entropy += img_matrix[i][j] * np.log(img_matrix[i][j])
+        return -entropy
 
-def calculate_homogeneity(matrix):
-    homogeneity = 0
-    # Menghitung homogenitas
-    for i in range(256):
-        for j in range(256):
-            homogeneity += matrix[i][j] / (1 + (i - j)**2)
-    return homogeneity
+    def calculate_homogeneity(self, img_matrix):
+        homogeneity = 0
+        for i in range(256):
+            for j in range(256):
+                homogeneity += img_matrix[i][j] / (1 + (i - j)**2)
+        return homogeneity
 
-def cosine_similarity(vec1, vec2):
-    # Menghitung cosine similarity
-    return np.dot(vec1, vec2)/(np.linalg.norm(vec1) * np.linalg.norm(vec2)) * 100
+    def cosine_similarity(self, vec1, vec2):
+        return np.dot(vec1, vec2)/(np.linalg.norm(vec1) * np.linalg.norm(vec2))
 
-def process_image(img_array, distance=1, levels=256):
-    # Mengubah gambar menjadi grayscale dan melakukan kuantisasi
-    img_quantized = quantize_grayscale(img_array, levels)
+    def process_image(self, img_matrix):
+        img_quantized = self.quantize_grayscale(img_matrix)
+        glcm = self.create_glcm(img_quantized)
+        norm_glcm = self.normalize(glcm)
+        contrast = self.calculate_contrast(norm_glcm)
+        entropy = self.calculate_entropy(norm_glcm)
+        homogeneity = self.calculate_homogeneity(norm_glcm)
+        return contrast, entropy, homogeneity
 
-    # Membuat GLCM
-    glcm = create_glcm(img_quantized, distance)
+    def compare_with_dataset(self, query_img, dataset):
+        query_contrast, query_entropy, query_homogeneity = self.process_image(query_img)
+        similarities = []
+        for image in dataset:
+            contrast, entropy, homogeneity = self.process_image(image)
+            similarity = self.cosine_similarity([query_contrast, query_entropy, query_homogeneity], [contrast, entropy, homogeneity])
+            similarities.append(similarity)
+        return similarities
 
-    # Normalisasi matriks
-    norm_glcm = normalize(glcm)
-
-    # Menghitung kontras, entropi, dan homogenitas
-    contrast = calculate_contrast(norm_glcm)
-    entropy = calculate_entropy(norm_glcm)
-    homogeneity = calculate_homogeneity(norm_glcm)
-
-    return contrast, entropy, homogeneity
-
-# # Testing fungsi
-# img1 = Image.open('./image/1.jpg')
-# contrast1, entropy1, homogeneity1 = process_image(np.array(img1))
-# directory = './image/'
-# for filename in os.listdir(directory):
-#     # Baca file gambar 
-#     if filename.endswith('.jpg'):
-#         # Buat path file
-#         filepath = os.path.join(directory, filename)
-#         # Proses gambar
-#         img2 = Image.open(filepath)
-#         contrast2,entropy2,homogeneity2 = process_image(np.array(img2))
-#         # Hitung tingkat kemiripan
-#         cosine_similarity_value = cosine_similarity([contrast1, entropy1, homogeneity1], [contrast2, entropy2, homogeneity2])
-#         print('Tingkat kemiripan dengan image {}: {:.3f}'.format(filepath, cosine_similarity_value))
 
