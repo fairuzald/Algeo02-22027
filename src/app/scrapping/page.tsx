@@ -17,10 +17,10 @@ export default function Home() {
   // Initialize state variables for image query, image data, texture option, specific limits, and limits count
   const [imageQuery, setImageQuery] = useState<string>('');
   const [isTexture, setIsTexture] = useState<boolean>(false);
-  const [imageMatrixQuery, setImageMatrixQuery] = useState<number[][]>([]);
+  const [imageMatrixQuery, setImageMatrixQuery] = useState<number[][][]>([]);
   const [imageQueryCam, setImageQueryCam] = useState<string>('');
   const [imageDataSet, setImageDataSet] = useState<ImageData[]>([]);
-  const [imageDataSetMatrix, setImageDataSetMatrix] = useState<number[][][]>(
+  const [imageDataSetMatrix, setImageDataSetMatrix] = useState<number[][][][]>(
     []
   );
   const [outputFileName, setOutputFileName] = useState<string>('');

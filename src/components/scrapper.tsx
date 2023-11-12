@@ -11,11 +11,11 @@ import React, { useState } from 'react';
 interface ScrapperProps {
   imageData: ImageDataType[];
   setImageData: React.Dispatch<React.SetStateAction<ImageDataType[]>>;
-  imageDataMatrix: number[][][];
-  setImageDataMatrix: React.Dispatch<React.SetStateAction<number[][][]>>;
+  imageDataMatrix: number[][][][];
+  setImageDataMatrix: React.Dispatch<React.SetStateAction<number[][][][]>>;
 }
 interface ImageDataWithMatrix extends ImageDataType {
-  matrix: number[][];
+  matrix: number[][][];
 }
 
 export const Scrapper: React.FC<ScrapperProps> = ({
