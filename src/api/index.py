@@ -66,10 +66,11 @@ async def compare_images(matrix_query: List[List[List[int]]], matrix_data_set: L
 @app.post("/api/cbir-texture")
 async def compare_images(matrix_query: List[List[List[int]]], matrix_data_set: List[List[List[List[int]]]]):
     try:
-        start_time = time.time()
-        image_comparator = ImageComparatorByTexture(matrix_data_set)
     #    Prosessing di bagian ini
     # ini ya
+        start_time = time.time()
+        image_comparator = ImageComparatorByTexture()
+        similarities = image_comparator.compare_with_dataset(matrix_query,matrix_data_set)
         elapsed_time = time.time() - start_time
         return {"similarities": similarities, "elapsed_time": elapsed_time}
     except Exception as e:
