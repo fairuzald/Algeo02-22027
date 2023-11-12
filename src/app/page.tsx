@@ -14,25 +14,24 @@ import TextInput from '@/components/text-input';
 export default function Home() {
   // Image Query Data
   const [imageQuery, setImageQuery] = useState<string>('');
-  const [imageMatrixQuery, setImageMatrixQuery] = useState<number[][]>([]);
+  const [imageMatrixQuery, setImageMatrixQuery] = useState<number[][][]>([]);
   const [imageQueryCam, setImageQueryCam] = useState<string>('');
-
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   // Image Data Set
   const [imageDataSet, setImageDataSet] = useState<string[]>([]);
-  const [imageMatrixDataSet, setImageMatrixDataSet] = useState<number[][][]>(
+  const [imageMatrixDataSet, setImageMatrixDataSet] = useState<number[][][][]>(
     []
   );
 
   // Result Percentage
-  const [resultPercentages, setResultPercentages] = useState<number[]>(
-    imageDataSet.map((_, index) => (index + 1) * 10)
-  );
+  const [resultPercentages, setResultPercentages] = useState<number[]>([]);
 
   // Feature State
   const [isTexture, setIsTexture] = useState<boolean>(false);
   const searchParams = useSearchParams();
   const isCamera = searchParams.get('camera') === 'true';
   const [outputFileName, setOutputFileName] = useState<string>('');
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
 
   const memoizedImageMatrixDataSet = useMemo(() => {
     return imageMatrixDataSet;
@@ -51,16 +50,13 @@ export default function Home() {
     console.log('Isi Query', memoizedImageMatrixQuery);
   }, [memoizedImageMatrixDataSet, memoizedImageMatrixQuery]);
 
-  useEffect(() => {
-    setResultPercentages(imageDataSet.map((_, index) => (index + 1) * 10));
-  }, [imageDataSet]);
-
   const handleDownloadPDF = async () => {
     if (
       (imageQuery || imageQueryCam) &&
       imageDataSet &&
       imageDataSet.length > 0
     ) {
+      setIsLoading(true);
       const data = {
         image_query: isCamera ? imageQueryCam : imageQuery,
         image_data_set: imageDataSet,
@@ -85,6 +81,36 @@ export default function Home() {
           link.href = pdfFilePath;
           link.download = `${outputFileName}.pdf`;
           link.click();
+          setIsLoading(false);
+        },
+      });
+    }
+  };
+
+  const handleCBIR = async () => {
+    if (
+      imageMatrixDataSet &&
+      imageMatrixDataSet.length > 0 &&
+      imageMatrixQuery
+    ) {
+      setIsLoading(true);
+      const data = JSON.stringify({
+        matrix_query: imageMatrixQuery,
+        matrix_data_set: imageMatrixDataSet,
+      });
+      makeApiRequest({
+        body: data,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        loadingMessage: 'Sending request...',
+        successMessage: 'Request successful!',
+        endpoint: '/api/cbir-color',
+        onSuccess: (data) => {
+          setIsLoading(false);
+          setElapsedTime(data.elapsed_time);
+          setResultPercentages(data.similarities);
         },
       });
     }
@@ -102,6 +128,7 @@ export default function Home() {
             setImageData={setImageQueryCam}
             imageMatrix={imageMatrixQuery}
             setImageMatrix={setImageMatrixQuery}
+            isLoadingOutside={isLoading}
           ></Camera>
         ) : (
           <SingleFileUpload
@@ -113,13 +140,22 @@ export default function Home() {
       </section>
       <hr className='border-1 border-slate-300 w-full' />
       <section className='flex flex-col gap-4'>
-        <h2 className='font-poppins text-xl lg:text-2xl flex font-semibold'>
-          Data set input
-        </h2>
+        <div className='flex justify-between w-full'>
+          <h2 className='font-poppins text-xl lg:text-2xl flex font-semibold'>
+            Data set input
+          </h2>
+          {elapsedTime > 0 && (
+            <p className='font-poppins text-base lg:text-lg'>
+              {imageDataSet.length} Results in{' '}
+              {elapsedTime.toPrecision(4).toLocaleString()} seconds
+            </p>
+          )}
+        </div>
         <MultipleFileUpload
           setImageBase64s={setImageDataSet}
           imageBase64s={imageDataSet}
           setMatrixImages={setImageMatrixDataSet}
+          percentages={resultPercentages}
         />
         <div className='flex items-center flex-wrap justify-center gap-4 py-4'>
           <p className='text-lg lg:text-2xl font-poppins font-semibold text-gold'>
@@ -146,7 +182,12 @@ export default function Home() {
             color='gradient-bp'
             size='small'
             isRounded
-            disabled={!imageQuery || !imageDataSet || imageDataSet.length <= 0}
+            disabled={
+              (!imageQuery && !imageQueryCam) ||
+              !imageDataSet ||
+              imageDataSet.length <= 0
+            }
+            onClick={handleCBIR}
           >
             Start Processing
           </Button>

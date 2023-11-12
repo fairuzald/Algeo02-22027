@@ -19,7 +19,7 @@ import { toast } from 'react-hot-toast';
 interface SingleFileUploadProps {
   setImageBase64: React.Dispatch<React.SetStateAction<string>>;
   imageBase64: string;
-  setImageMatrix: React.Dispatch<React.SetStateAction<number[][]>>;
+  setImageMatrix: React.Dispatch<React.SetStateAction<number[][][]>>;
 }
 
 // The SingleFileUpload component
@@ -88,7 +88,6 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
     setImageBase64('');
     setImageMatrix([]);
   };
-  console.log('ini base', imageBase64, 'ini file', imageFile);
   // Render the component
   return (
     <div>
