@@ -16,7 +16,7 @@ export default function Home() {
   const [imageQuery, setImageQuery] = useState<string>('');
   const [imageMatrixQuery, setImageMatrixQuery] = useState<number[][][]>([]);
   const [imageQueryCam, setImageQueryCam] = useState<string>('');
-
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   // Image Data Set
   const [imageDataSet, setImageDataSet] = useState<string[]>([]);
   const [imageMatrixDataSet, setImageMatrixDataSet] = useState<number[][][][]>(
@@ -56,6 +56,7 @@ export default function Home() {
       imageDataSet &&
       imageDataSet.length > 0
     ) {
+      setIsLoading(true);
       const data = {
         image_query: isCamera ? imageQueryCam : imageQuery,
         image_data_set: imageDataSet,
@@ -80,6 +81,7 @@ export default function Home() {
           link.href = pdfFilePath;
           link.download = `${outputFileName}.pdf`;
           link.click();
+          setIsLoading(false);
         },
       });
     }
@@ -91,6 +93,7 @@ export default function Home() {
       imageMatrixDataSet.length > 0 &&
       imageMatrixQuery
     ) {
+      setIsLoading(true);
       const data = JSON.stringify({
         matrix_query: imageMatrixQuery,
         matrix_data_set: imageMatrixDataSet,
@@ -105,7 +108,7 @@ export default function Home() {
         successMessage: 'Request successful!',
         endpoint: '/api/cbir-color',
         onSuccess: (data) => {
-          // Handle the response data here
+          setIsLoading(false);
           setElapsedTime(data.elapsed_time);
           setResultPercentages(data.similarities);
         },
@@ -125,6 +128,7 @@ export default function Home() {
             setImageData={setImageQueryCam}
             imageMatrix={imageMatrixQuery}
             setImageMatrix={setImageMatrixQuery}
+            isLoadingOutside={isLoading}
           ></Camera>
         ) : (
           <SingleFileUpload
@@ -178,7 +182,11 @@ export default function Home() {
             color='gradient-bp'
             size='small'
             isRounded
-            disabled={!imageQuery || !imageDataSet || imageDataSet.length <= 0}
+            disabled={
+              (!imageQuery && !imageQueryCam) ||
+              !imageDataSet ||
+              imageDataSet.length <= 0
+            }
             onClick={handleCBIR}
           >
             Start Processing
