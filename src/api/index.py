@@ -3,7 +3,9 @@ from typing import Dict
 from typing import Union
 import io
 import cv2
+import time
 from fastapi import FastAPI, File,  Request, UploadFile
+from fastapi.responses import JSONResponse
 from typing import List
 from urllib.parse import urlparse, urlunparse
 from fastapi.responses import StreamingResponse
@@ -11,6 +13,7 @@ import numpy as np
 from pydantic import BaseModel
 from api.object_detector import ObjectDetector
 from api.scraper import ImageScraper
+from api.cbir_color import ImageComparator
 from fastapi.middleware.cors import CORSMiddleware
 from api.image_processing import ImageProcessing
 from api.save import PDFCreator
@@ -53,6 +56,24 @@ async def convert_camera(request: Request):
     body = await request.json()
     image_data = body.get("image_data")
     return await imageProcessor.convert_camera(image_data)
+
+@app.post("/api/cbir-color")
+async def compare_images(matrix_query: List[List[List[int]]], matrix_data_set: List[List[List[List[int]]]]):
+    try:
+        print(f"Received matrix_query: ")
+        print(f"Received matrix_data_set: ")
+
+        start_time = time.time()
+        image_comparator = ImageComparator(matrix_data_set)
+        image_comparator.load_dataset_histograms()
+        input_histogram = image_comparator.compute_global_color_histogram_hsv(matrix_query)
+        similarities = image_comparator.compare_images(input_histogram)
+        elapsed_time = time.time() - start_time
+        return {"similarities": similarities, "elapsed_time": elapsed_time}
+    except Exception as e:
+        print(f"Error in compare_images: {e}")
+        raise
+
     
 scraper = ImageScraper()
 @app.get("/api/scrape")
