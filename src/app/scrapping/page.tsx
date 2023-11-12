@@ -17,10 +17,10 @@ export default function Home() {
   // Initialize state variables for image query, image data, texture option, specific limits, and limits count
   const [imageQuery, setImageQuery] = useState<string>('');
   const [isTexture, setIsTexture] = useState<boolean>(false);
-  const [imageMatrixQuery, setImageMatrixQuery] = useState<number[][]>([]);
+  const [imageMatrixQuery, setImageMatrixQuery] = useState<number[][][]>([]);
   const [imageQueryCam, setImageQueryCam] = useState<string>('');
   const [imageDataSet, setImageDataSet] = useState<ImageData[]>([]);
-  const [imageDataSetMatrix, setImageDataSetMatrix] = useState<number[][][]>(
+  const [imageDataSetMatrix, setImageDataSetMatrix] = useState<number[][][][]>(
     []
   );
   const [outputFileName, setOutputFileName] = useState<string>('');
@@ -50,6 +50,8 @@ export default function Home() {
   const [resultPercentages, setResultPercentages] = useState<number[]>(
     imageDataSet.map((_, index) => (index + 1) * 10)
   );
+
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
 
   useEffect(() => {
     setResultPercentages(imageDataSet.map((_, index) => (index + 1) * 10));
@@ -110,6 +112,35 @@ export default function Home() {
     }
   };
 
+  const handleCBIR = async () => {
+    if (
+      imageDataSetMatrix &&
+      imageDataSetMatrix.length > 0 &&
+      imageMatrixQuery
+    ) {
+      setIsLoading(true);
+      const data = JSON.stringify({
+        matrix_query: imageMatrixQuery,
+        matrix_data_set: imageDataSetMatrix,
+      });
+      makeApiRequest({
+        body: data,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        loadingMessage: 'Sending request...',
+        successMessage: 'Request successful!',
+        endpoint: isTexture ? '/api/cbir-texture' : '/api/cbir-color',
+        onSuccess: (data) => {
+          setIsLoading(false);
+          setElapsedTime(data.elapsed_time);
+          setResultPercentages(data.similarities);
+        },
+      });
+    }
+  };
+
   return (
     <main className='flex gap-8 text-white lg:gap-10 min-h-screen flex-col py-20 px-8 sm:px-10 md:px-20 lg:px-40 bg-gradient-to-tr from-[#455976] via-[55%] via-[#2A182e]  to-[#8b3f25]'>
       <h1 className='font-poppins font-bold text-3xl lg:text-4xl tracking-wide text-center'>
@@ -144,6 +175,7 @@ export default function Home() {
           imageData={imageDataSet}
           setImageDataMatrix={setImageDataSetMatrix}
           imageDataMatrix={imageDataSetMatrix}
+          percentages={resultPercentages}
         />
       </section>
       <hr className='border-1 border-slate-300 w-full' />

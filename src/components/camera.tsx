@@ -9,8 +9,8 @@ import toast from 'react-hot-toast';
 interface CameraProps {
   imageData: string;
   setImageData: React.Dispatch<React.SetStateAction<string>>;
-  imageMatrix: number[][];
-  setImageMatrix: React.Dispatch<React.SetStateAction<number[][]>>;
+  imageMatrix: number[][][];
+  setImageMatrix: React.Dispatch<React.SetStateAction<number[][][]>>;
   isLoadingOutside?: boolean;
 }
 
