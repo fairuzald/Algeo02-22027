@@ -128,7 +128,7 @@ class ImageProcessing:
             base64_img = base64.b64encode(img_bytes).decode('utf-8')
 
             # Encode the response data using the custom encoder
-            return {"matrix": img_matrix.tolist(), "base64": 'data:image/png;base64,' + base64_img}
+            return {"matrix": cropped_img.tolist(), "base64": 'data:image/png;base64,' + base64_img}
         except HTTPException as e:
             raise e
         except Exception as e:
