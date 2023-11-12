@@ -22,7 +22,6 @@ class ImageProcessing:
 
             # Detect and crop the image
             cropped_img = detector.detect_and_crop(matrix)
-            
             # Convert the cropped image to base64
             pil_img = Image.fromarray(cropped_img)
 
@@ -65,7 +64,7 @@ class ImageProcessing:
                 # Convert bytes to base64
                 base64_img = base64.b64encode(img_bytes).decode('utf-8')
                 base64_images.append(f"data:image/png;base64,{base64_img}")
-                matrices.append(matrix.tolist())
+                matrices.append(cropped_img.tolist())
             return {"matrices": matrices, "base64_images": base64_images}
         except FileNotFoundError:
             raise HTTPException(status_code=404, detail="Error: File not found")
