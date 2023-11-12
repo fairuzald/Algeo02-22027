@@ -74,7 +74,7 @@ class PDFCreator:
             for index, (image_data, result_percentage) in enumerate(zip(image_data_set, result_percentage_set)):
                 image_data_file, img_w, img_h = self.process_image(image_data, f"image_data_{index}.png")
                 img_w, img_h = self.add_image_to_pdf(pdf, image_data_file, img_w, img_h)
-                pdf.cell(200, 20, txt=f"Percentage: {result_percentage}%", ln=True)
+                pdf.cell(200, 20, txt=f"Similarity percentage: {result_percentage}%", ln=True)
 
                 if pdf.get_y() + img_h > pdf.page_break_trigger:
                     pdf.add_page()

@@ -7,6 +7,7 @@ class ImageComparatorByTexture:
         self.levels = levels
 
     def convert_to_grayscale(self, img_matrix):
+        img_matrix = np.array(img_matrix)  # Convert to NumPy array
         R, G, B = img_matrix[:,:,0], img_matrix[:,:,1], img_matrix[:,:,2]
         grayscale = 0.29 * R + 0.587 * G + 0.114 * B
         grayscale = grayscale.astype(np.uint8)
@@ -69,7 +70,7 @@ class ImageComparatorByTexture:
         for image in dataset:
             contrast, entropy, homogeneity = self.process_image(image)
             similarity = self.cosine_similarity([query_contrast, query_entropy, query_homogeneity], [contrast, entropy, homogeneity])
-            similarities.append(similarity)
+            similarities.append(similarity*100)
         return similarities
 
 
