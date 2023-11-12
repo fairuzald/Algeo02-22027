@@ -50,8 +50,6 @@ export default function Home() {
     console.log('Isi Query', memoizedImageMatrixQuery);
   }, [memoizedImageMatrixDataSet, memoizedImageMatrixQuery]);
 
-  console.log('result', resultPercentages);
-
   const handleDownloadPDF = async () => {
     if (
       (imageQuery || imageQueryCam) &&
@@ -108,7 +106,6 @@ export default function Home() {
         endpoint: '/api/cbir-color',
         onSuccess: (data) => {
           // Handle the response data here
-          console.log('Response data:', data);
           setElapsedTime(data.elapsed_time);
           setResultPercentages(data.similarities);
         },
@@ -139,9 +136,17 @@ export default function Home() {
       </section>
       <hr className='border-1 border-slate-300 w-full' />
       <section className='flex flex-col gap-4'>
-        <h2 className='font-poppins text-xl lg:text-2xl flex font-semibold'>
-          Data set input
-        </h2>
+        <div className='flex justify-between w-full'>
+          <h2 className='font-poppins text-xl lg:text-2xl flex font-semibold'>
+            Data set input
+          </h2>
+          {elapsedTime > 0 && (
+            <p className='font-poppins text-base lg:text-lg'>
+              {imageDataSet.length} Results in{' '}
+              {elapsedTime.toPrecision(4).toLocaleString()} seconds
+            </p>
+          )}
+        </div>
         <MultipleFileUpload
           setImageBase64s={setImageDataSet}
           imageBase64s={imageDataSet}

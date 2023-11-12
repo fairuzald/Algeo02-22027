@@ -22,7 +22,6 @@ const GroupPagination: React.FC<GroupPaginationProps> = ({
   console.log(percentages);
 
   // Get the files and image URLs for the current page
-  const currentFiles = files.slice(startIndex, endIndex);
   const currentImage = imageUrls.slice(startIndex, endIndex);
 
   return (

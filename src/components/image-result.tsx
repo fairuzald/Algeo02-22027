@@ -30,7 +30,10 @@ export default function ImageResult({
             }}
             className='p-4 lg:p-8 font-poppins text-[#dbb88b] text-base lg:text-xl font-bold absolute z-10 left-1/2 -translate-x-1/2 bottom-2'
           >
-            {percentage.toPrecision(6)}%
+            {Number.isInteger(percentage)
+              ? percentage.toLocaleString()
+              : percentage.toPrecision(6).toLocaleString()}
+            %
           </p>
         )}
       </div>
