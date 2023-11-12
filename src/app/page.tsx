@@ -106,7 +106,7 @@ export default function Home() {
         },
         loadingMessage: 'Sending request...',
         successMessage: 'Request successful!',
-        endpoint: '/api/cbir-color',
+        endpoint: isTexture ? '/api/cbir-texture' : '/api/cbir-color',
         onSuccess: (data) => {
           setIsLoading(false);
           setElapsedTime(data.elapsed_time);
