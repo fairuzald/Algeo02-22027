@@ -1,6 +1,4 @@
-from PIL import Image
 import numpy as np
-import os
 
 # NB : SEMUA FUNGSI DISINI PARAMETERNYA HARUS IMAGE YANG SUDAH DICONVERT KE BENTUK MATRIXNYA BUKAN PATH DARI IMAGENYA
 class ImageComparatorByTexture:
