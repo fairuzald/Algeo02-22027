@@ -68,9 +68,8 @@ async def compare_images(matrix_query: List[List[List[int]]], matrix_data_set: L
     try:
         start_time = time.time()
         image_comparator = ImageComparatorByTexture(matrix_data_set)
-        image_comparator.load_dataset_histograms()
-        input_histogram = image_comparator.compute_global_color_histogram_hsv(matrix_query)
-        similarities = image_comparator.compare_images(input_histogram)
+    #    Prosessing di bagian ini
+    # ini ya
         elapsed_time = time.time() - start_time
         return {"similarities": similarities, "elapsed_time": elapsed_time}
     except Exception as e:
