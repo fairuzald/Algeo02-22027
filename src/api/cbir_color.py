@@ -1,14 +1,12 @@
-from PIL import Image
 import numpy as np
 from fastapi import FastAPI
+from typing import List
 
 app = FastAPI()
 
 class ImageComparator:
-    def __init__(self, dataset_folder_path="/test/input", num_dataset_images=500):
-        self.dataset_folder_path = dataset_folder_path
-        self.num_dataset_images = num_dataset_images
-        self.dataset_image_paths = [f"{dataset_folder_path}/{i}.jpg" for i in range(0, num_dataset_images + 1)]
+    def __init__(self, dataset_matrices: List[List[List[int]]]):
+        self.dataset_matrices = dataset_matrices
         self.dataset_histograms = []
 
     @staticmethod
@@ -28,12 +26,8 @@ class ImageComparator:
 
         return h, s, v
 
-    def compute_global_color_histogram_hsv(self, image):
-        # konversi image ke NumPy array
-        image_np = np.array(image)
-
-        # konversi RGB ke HSV
-        hsv = np.stack(self.rgb_to_hsv(image_np[..., 0], image_np[..., 1], image_np[..., 2]), axis=-1)
+    def compute_global_color_histogram_hsv(self, image_matrix):
+        hsv = np.stack(self.rgb_to_hsv(image_matrix[..., 0], image_matrix[..., 1], image_matrix[..., 2]), axis=-1)
 
         # define bin edges
         h_bins = [0, 1, 25.5, 40.5, 120.5, 190.5, 270.5, 295.5, 316.5, 360]
@@ -45,20 +39,19 @@ class ImageComparator:
 
         return hist
 
-    def cosine_similarity_custom(self, vec1, vec2):
+    def cosine_similarity(self, vec1, vec2):
         return np.dot(vec1, vec2)/(np.linalg.norm(vec1) * np.linalg.norm(vec2))
 
     def load_dataset_histograms(self):
-        for dataset_image_path in self.dataset_image_paths:
-            dataset_image = Image.open(dataset_image_path)
-            dataset_histogram = self.compute_global_color_histogram_hsv(dataset_image)
+        for dataset_image_matrix in self.dataset_matrices:
+            dataset_histogram = self.compute_global_color_histogram_hsv(dataset_image_matrix)
             self.dataset_histograms.append(dataset_histogram)
 
     def compare_images(self, input_histogram):
         input_histogram = input_histogram.flatten()
         dataset_histograms = [hist.flatten() for hist in self.dataset_histograms]
 
-        similarities = [self.cosine_similarity_custom(input_histogram, hist) for hist in dataset_histograms]
+        similarities = [self.cosine_similarity(input_histogram, hist) for hist in dataset_histograms]
 
         return similarities
 
