@@ -3,11 +3,11 @@
 <p align="center">
   <a href="https://algeo02-22027.vercel.app">
     <img src="https://res.cloudinary.com/dkyq76c5w/image/upload/v1699860331/cuk-removebg-preview_y357nd.png" height="96">
-    <h3 align="center">Next.js FastAPI Starter</h3>
+    <h3 align="center">CBIR Explorer</h3>
   </a>
 </p>
 
-<p align="center">Simple Next.js boilerplate that uses <a href="https://fastapi.tiangolo.com/">FastAPI</a> as the API backend.</p>
+<p align="center">Next.js boilerplate that uses <a href="https://fastapi.tiangolo.com/">FastAPI</a> as the API backend.</p>
 
 <br/>
 
@@ -166,9 +166,9 @@ yarn dev
 pnpm dev
 ```
 
-### 6. Run Next.js Development Server
+### Step 6: Open your browser and navigate to
 
-Client side berada pada localhost:3000 dan server pada localhost:8000
+Client-side is running on [localhost:3000](http://localhost:3000), and the server is on [localhost:8000](http://localhost:8000).
 
 ## Maintainers : cukurukuk team
 
