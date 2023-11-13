@@ -14,8 +14,9 @@ export default function AboutUsPage() {
           Allah SWT, ingin menyampaikan apresiasi dan terima kasih kepada semua
           pihak yang telah memberikan dukungan dan bimbingan selama perjalanan
           pembuatan aplikasi ini. Kami juga mengucapkan terima kasih kepada para
-          asisten dan dosen kami, terutama Bapak Rinaldi Munir, yang telah
-          memberikan bimbingan dan ilmu yang berharga dalam mata kuliah ini.
+          asisten dan dosen kami, terutama Bapak Rinaldi Munir dan Bapak Judhi
+          Santoso, yang telah memberikan bimbingan dan ilmu yang berharga dalam
+          mata kuliah ini.
           <br />
           <span className='font-bold'>Nama Kelompok: Cukurukuk</span>
           <ol className='list-decimal px-10'>
