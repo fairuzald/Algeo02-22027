@@ -84,6 +84,18 @@ export default function Home() {
           allowFullScreen
         ></iframe>
       </section>
+      <section className=' px-8 sm:px-10 md:px-20 lg:px-40 flex flex-col items-center justify-center gap-10'>
+        <h2 className='text-gold-light font-poppins text-3xl font-semibold text-center'>
+          Our Rest API
+        </h2>
+        <iframe
+          src='https://fairuzald-algeo02-22027.hf.space/docs'
+          frameBorder='0'
+          width='850'
+          height='450'
+          className='bg-white w-full max-w-[700px]'
+        ></iframe>
+      </section>
       <section className='px-8 sm:px-10 md:px-20 lg:px-40 flex flex-col gap-10'>
         <h2 className='text-gold-light font-poppins text-3xl font-semibold text-center'>
           Konsep

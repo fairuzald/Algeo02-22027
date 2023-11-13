@@ -54,10 +54,8 @@ const NavBar = () => {
         <span className='bg-gradient-to-r from-[#1363D9] to-[#7939d4] bg-clip-text text-transparent'>
           Cukurukuk
         </span>
-        <span className='text-white'>Team</span>
-        <span className='bg-gradient-to-r from-[#1363D9] to-[#7939d4] bg-clip-text text-transparent'>
-          .
-        </span>
+        <span className='text-gold-light'>Team</span>
+        <span className='text-gold-light'>.</span>
       </Link>
 
       {/* Menu Icon Button */}
@@ -95,8 +93,8 @@ const NavBar = () => {
                 <li
                   className={`py-2 ${
                     pathname.startsWith(path.url)
-                      ? 'bg-gradient-to-r from-[#1363D9] to-[#7939d4] bg-clip-text text-transparent'
-                      : 'text-white xl:transition-colors xl:duration-200 xl:ease-in-out xl:hover:bg-gradient-to-r from-[#1363D9] to-[#7939d4] hover:bg-clip-text hover:text-transparent'
+                      ? 'text-gold-light'
+                      : 'text-white xl:transition-colors xl:duration-200 xl:ease-in-out transition-all duration-300 hover:text-gold-light'
                   }`}
                 >
                   {path.name}
