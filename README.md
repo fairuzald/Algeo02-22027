@@ -78,7 +78,7 @@ The integration of color and texture parameters enhances CBIR accuracy and effic
 
 Page on the [Website](https://algeo02-22027.vercel.app/):
 
-1. **Access CBIR and Scrapping **
+1. **Access CBIR and Scrapping**
 
    - Navigate to the "CBIR" page to perform Content-Based Image Retrieval with a dataset input file.
    - Visit the "Scrapping" page to input URLs and perform web scraping.
@@ -125,21 +125,11 @@ Before starting the development process, make sure you have the following softwa
 ### 1. Clone the Repository
 
 ```bash
-git clone <https://github.com/fairuzald/Algeo02-22027>
-cd <Algeo02-22027>
+git clone https://github.com/fairuzald/Algeo02-22027
+cd Algeo02-22027
 ```
 
-### 2. Install Frontend Dependencies
-
-```bash
-npm install
-# or
-yarn install
-# or
-pnpm install
-```
-
-### 3. Create and Activate Python Virtual Environment
+### 2. Create and Activate Python Virtual Environment
 
 ```bash
 python -m venv venv
@@ -149,11 +139,21 @@ python -m venv venv
 source venv/bin/activate
 ```
 
-### 4. Navigate to the Source (src) Directory
+### 3. Navigate to the Source (src) Directory
 
 ```bash
 cd src
 
+```
+
+### 4. Install Frontend Dependencies
+
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
 ```
 
 ### 5. Run Next.js Development Server
@@ -165,6 +165,8 @@ yarn dev
 # or
 pnpm dev
 ```
+
+### 6. Run Next.js Development Server
 
 Client side berada pada localhost:3000 dan server pada localhost:8000
 
