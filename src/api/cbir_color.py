@@ -51,4 +51,3 @@ class ImageComparator:
         similarities = [self.cosine_similarity(input_histogram, hist)*100 for hist in dataset_histograms]
 
         return similarities
-

@@ -28,7 +28,7 @@ export async function makeApiRequest({
       fetch(process.env.NEXT_PUBLIC_API_URL + endpoint, {
         method: method,
         headers: headers,
-        timeout: 300000,
+        timeout: 30000000,
         keepAlive: true,
         noDelay: true,
         ...(method !== 'GET' ? { body: body } : {}),

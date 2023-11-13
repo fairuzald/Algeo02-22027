@@ -1,10 +1,14 @@
 import os
 import base64
 from io import BytesIO
+from typing import List
 from PIL import Image
 from fastapi import HTTPException
 from fpdf import FPDF
 import tempfile
+
+from pydantic import BaseModel
+
 
 class PDFCreator:
     def __init__(self):
@@ -47,13 +51,9 @@ class PDFCreator:
         pdf.ln(img_h)
         return img_w, img_h
 
-    def create_pdf(self, data: dict):
+    def create_pdf(self, image_query: str, image_data_set: List[str], is_texture: bool, result_percentage_set: List[float], output_filename: str, elapsed_time: float):
         try:
-            image_query = data['image_query']
-            image_data_set = data['image_data_set']
-            is_texture = data['is_texture']
-            result_percentage_set = data['result_percentage_set']
-            output_filename = data['output_filename']
+           
             pdf = FPDF()
             pdf.add_page()
             self.watermark(pdf)
@@ -69,17 +69,19 @@ class PDFCreator:
             image_query_file, img_w, img_h = self.process_image(image_query, "image_query.png")
             img_w, img_h = self.add_image_to_pdf(pdf, image_query_file, img_w, img_h)
 
-            pdf.cell(200, 10, txt="Data Set:", ln=True, align='C')
+            pdf.set_font("Arial", style='B', size=14)
+            pdf.multi_cell(200, 10, txt=f"{len(image_data_set)} Results with similarities in {elapsed_time} seconds:")
+
             pdf.set_font("Arial", size=12)
             for index, (image_data, result_percentage) in enumerate(zip(image_data_set, result_percentage_set)):
-                image_data_file, img_w, img_h = self.process_image(image_data, f"image_data_{index}.png")
-                img_w, img_h = self.add_image_to_pdf(pdf, image_data_file, img_w, img_h)
-                pdf.cell(200, 20, txt=f"Similarity percentage: {result_percentage}%", ln=True)
+                    image_data_file, img_w, img_h = self.process_image(image_data, f"image_data_{index}.png")
+                    img_w, img_h = self.add_image_to_pdf(pdf, image_data_file, img_w, img_h)
+                    pdf.cell(200, 20, txt=f"Similarity percentage: {result_percentage}%", ln=True)
 
-                if pdf.get_y() + img_h > pdf.page_break_trigger:
-                    pdf.add_page()
-                    self.watermark(pdf)
-                
+                    if pdf.get_y() + img_h > pdf.page_break_trigger:
+                        pdf.add_page()
+                        self.watermark(pdf)
+                    
             pdf_file_dir = "../test/output/"
             if not os.path.exists(pdf_file_dir):
                 os.makedirs(pdf_file_dir)
@@ -92,4 +94,3 @@ class PDFCreator:
             raise e
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
-       

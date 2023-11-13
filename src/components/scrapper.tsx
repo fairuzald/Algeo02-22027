@@ -13,6 +13,7 @@ interface ScrapperProps {
   setImageData: React.Dispatch<React.SetStateAction<ImageDataType[]>>;
   imageDataMatrix: number[][][][];
   setImageDataMatrix: React.Dispatch<React.SetStateAction<number[][][][]>>;
+  percentages?: number[];
 }
 interface ImageDataWithMatrix extends ImageDataType {
   matrix: number[][][];
@@ -23,6 +24,7 @@ export const Scrapper: React.FC<ScrapperProps> = ({
   imageDataMatrix,
   setImageData,
   setImageDataMatrix,
+  percentages,
 }) => {
   const [isSpecificLimits, setIsSpecificLimits] = useState<boolean>(false);
   const [limits, setLimits] = useState<number>(1);
@@ -37,19 +39,27 @@ export const Scrapper: React.FC<ScrapperProps> = ({
         isSpecificLimits ? limits : 0
       }`,
       onSuccess: (data: ImageDataWithMatrix[]) => {
+        // Separate data into matrix and non-matrix
         const nonMatrixData = data.map(({ matrix, ...rest }) => rest);
-        const matrixData = data.map(({ matrix }) => matrix);
-        setImageData(nonMatrixData as ImageDataType[]);
+
+        const matrixData = data
+          .filter((item) => item.matrix)
+          .map(({ matrix }) => matrix);
+
+        setImageData(nonMatrixData);
         setImageDataMatrix(matrixData);
       },
     });
   };
-
   return (
     <>
       {/* Display image data pagination component if there is image data, otherwise display data input form */}
       {imageData.length > 0 ? (
-        <GroupPagination imageUrls={imageData} itemsPerPage={6} />
+        <GroupPagination
+          imageUrls={imageData}
+          itemsPerPage={6}
+          percentages={percentages}
+        />
       ) : (
         <div className='flex gap-7 flex-col'>
           {/* Text input for link */}

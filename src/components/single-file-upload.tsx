@@ -19,6 +19,7 @@ import { toast } from 'react-hot-toast';
 interface SingleFileUploadProps {
   setImageBase64: React.Dispatch<React.SetStateAction<string>>;
   imageBase64: string;
+  type?: 'yolo' | 'normal';
   setImageMatrix: React.Dispatch<React.SetStateAction<number[][][]>>;
 }
 
@@ -27,6 +28,7 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
   imageBase64,
   setImageBase64,
   setImageMatrix,
+  type = 'yolo',
 }) => {
   // State variables for managing the fileChange and image URL
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -44,7 +46,7 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
         method: 'POST',
         loadingMessage: 'File image processing...',
         successMessage: 'File image processing successful!',
-        endpoint: '/api/convert',
+        endpoint: type == 'yolo' ? '/api/convert' : '/api/convert-no-yolo',
         onSuccess: (data) => {
           setImageFile(selectedFile);
           if (data.matrix) {

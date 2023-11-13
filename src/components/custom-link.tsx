@@ -3,7 +3,7 @@ import React from 'react';
 interface CustomLinkProps {
   color: 'gradient-bp';
   isRounded?: boolean;
-  size: 'small' | 'medium';
+  size: 'small' | 'medium' | 'large';
   children: React.ReactNode;
   href: string;
 }
@@ -17,6 +17,7 @@ const CustomLink: React.FC<CustomLinkProps> = ({
   const sizeEffect = {
     small: 'py-2 px-8',
     medium: 'py-3 px-4',
+    large: 'py-3 px-10',
   };
   const colorEffect = {
     'gradient-bp': 'bg-gradient-to-r from-[#1363D9] to-[#7939d4]',

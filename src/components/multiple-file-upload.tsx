@@ -22,6 +22,7 @@ interface MultipleFileUploadProps {
   imageBase64s: string[];
   setMatrixImages: React.Dispatch<React.SetStateAction<number[][][][]>>;
   percentages: number[];
+  setPercentages: React.Dispatch<React.SetStateAction<number[]>>;
 }
 
 // The MultipleFileUpload component
@@ -30,12 +31,12 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
   imageBase64s,
   setMatrixImages,
   percentages,
+  setPercentages,
 }) => {
   // State variables for managing the filesChange, image URLs, and matrix images
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const itemsPerPage = 6;
   const hiddenFileInput = useRef<HTMLInputElement>(null);
-  console.log(percentages);
 
   // Function to handle file selection
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -113,6 +114,7 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
     setImageFiles([]);
     setImageBase64s([]);
     setMatrixImages([]);
+    setPercentages([]);
     if (hiddenFileInput.current) {
       hiddenFileInput.current.value = '';
     }

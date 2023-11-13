@@ -40,6 +40,29 @@ class ImageProcessing:
             raise HTTPException(status_code=422, detail="Error: Invalid file format")
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+        
+    async def convertWithoutYolo(self, file: UploadFile) -> Union[Dict[str, List[List[int]]], Dict[str, str]]:
+        try:
+            contents = await file.read()
+            
+            image = Image.open(io.BytesIO(contents))
+            matrix = np.array(image)
+
+            # Save PIL Image to memory as bytes with PNG format
+            img_bytes_io = io.BytesIO()
+            image.save(img_bytes_io, format='PNG')  # Save the image to the BytesIO object
+            img_bytes = img_bytes_io.getvalue()  # Get the value of the BytesIO object
+
+            # Convert bytes to base64
+            base64_img = base64.b64encode(img_bytes).decode('utf-8')
+
+            return {"matrix": matrix.tolist(), "base64": 'data:image/png;base64,'+base64_img}
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail="Error: File not found")
+        except ValueError:
+            raise HTTPException(status_code=422, detail="Error: Invalid file format")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
 
     async def convert_multiple(self, files: List[UploadFile]) -> Union[Dict[str, List[List[List[int]]]], Dict[str, str]]:
         matrices = []
@@ -76,7 +99,7 @@ class ImageProcessing:
     class ImageUrls(BaseModel):
         urls: List[str]
 
-    async def url_to_matrix(self, url: str) -> List[List[int]]:
+    def url_to_matrix(self, url: str) -> List[List[int]]:
         try:
             response = requests.get(url, stream=True)
             if response.status_code != 200:
