@@ -21,11 +21,6 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 
-@app.get("/api/python")
-
-def hello_world():
-    return {"message": "Hello World"}
-
 imageProcessor = ImageProcessing()
 class ConvertImageToBase64Request(BaseModel):
     urls: List[str]
