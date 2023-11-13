@@ -113,11 +113,7 @@ Page on the [Website](https://algeo02-22027.vercel.app/):
 
 To run the application locally:
 
-# Development Guide
-
-This guide provides step-by-step instructions for setting up and running the Content-Based Image Retrieval (CBIR) application locally for development purposes.
-
-## Prerequisites
+### Prerequisites
 
 Before starting the development process, make sure you have the following software installed on your machine:
 
@@ -126,14 +122,14 @@ Before starting the development process, make sure you have the following softwa
 - [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/) (for managing JavaScript dependencies)
 - [Virtualenv](https://virtualenv.pypa.io/) (for creating Python virtual environments)
 
-## 1. Clone the Repository
+### 1. Clone the Repository
 
 ```bash
 git clone <https://github.com/fairuzald/Algeo02-22027>
 cd <Algeo02-22027>
 ```
 
-## 2. Install Frontend Dependencies
+### 2. Install Frontend Dependencies
 
 ```bash
 npm install
@@ -143,7 +139,7 @@ yarn install
 pnpm install
 ```
 
-## 3. Create and Activate Python Virtual Environment
+### 3. Create and Activate Python Virtual Environment
 
 ```bash
 python -m venv venv
@@ -153,14 +149,14 @@ python -m venv venv
 source venv/bin/activate
 ```
 
-## 4. Navigate to the Source (src) Directory
+### 4. Navigate to the Source (src) Directory
 
 ```bash
 cd src
 
 ```
 
-## 5. Run Next.js Development Server
+### 5. Run Next.js Development Server
 
 ```bash
 npm run dev
@@ -169,3 +165,15 @@ yarn dev
 # or
 pnpm dev
 ```
+
+Client side berada pada localhost:3000 dan server pada localhost:8000
+
+## Maintainers : cukurukuk team
+
+This program is develop and maintain by cukurukuk team.
+
+| NIM      | Nama                      |
+| -------- | ------------------------- |
+| 13522027 | Muhammad Al Thariq Fairuz |
+| 13522057 | Moh Fairuz Alauddin Yahya |
+| 13522067 | Randy Verdian             |
