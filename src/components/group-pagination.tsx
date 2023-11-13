@@ -1,6 +1,8 @@
+'use client';
 import React from 'react';
 import ImageResult from '@/components/image-result';
 import Pagination from '@/components/pagination';
+import { data } from 'autoprefixer';
 
 interface GroupPaginationProps {
   files: File[];
@@ -19,31 +21,47 @@ const GroupPagination: React.FC<GroupPaginationProps> = ({
   // Calculate the index of the first and last item on the current page
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  console.log(percentages);
+
+  // Create an array of objects for the filtered files
+  // Create an array of objects for the filtered files
+  const hasPercentages = percentages && percentages.length > 0;
+
+  // Create an array of objects for the filtered files
+  const filteredFilesData = files.map((file, index) => {
+    const imageUrl = imageUrls[index];
+    const percentage = hasPercentages ? percentages[index] : undefined;
+    return {
+      percentage: percentage && percentage > 60 ? percentage : undefined,
+      imageUrl,
+      file,
+    };
+  });
+  // Sort the files in descending order based on percentage
+  const sortedFilesData = filteredFilesData.sort((a, b) => {
+    return (b.percentage || 0) - (a.percentage || 0);
+  });
 
   // Get the files and image URLs for the current page
-  const currentImage = imageUrls.slice(startIndex, endIndex);
+  const filteredFilesData2 = hasPercentages
+    ? sortedFilesData.filter((data) => data.percentage !== undefined)
+    : sortedFilesData;
+
+  const currentImage = filteredFilesData2.slice(startIndex, endIndex);
 
   return (
     <div className='flex flex-col items-center justify-center gap-10'>
       <div className='flex flex-wrap gap-5 lg:gap-6 items-center justify-center w-full min-h-[300]'>
-        {files.map((file, index) => {
-          const imageUrl = imageUrls[index];
-          const percentage = percentages && percentages[index];
-          if (currentImage.includes(imageUrl)) {
-            return (
-              <ImageResult
-                key={file?.name || index}
-                imageUrl={imageUrl}
-                imageTitle={file?.name}
-                percentage={percentage}
-              />
-            );
-          }
-        })}
+        {currentImage.map(({ percentage, imageUrl, file }, index) => (
+          <ImageResult
+            key={file?.name || index}
+            imageUrl={imageUrl}
+            imageTitle={file?.name}
+            percentage={percentage}
+          />
+        ))}
       </div>
       <Pagination
-        numberPage={Math.ceil(files.length / itemsPerPage)}
+        numberPage={Math.ceil(filteredFilesData2.length / itemsPerPage)}
         currentNumberPage={currentPage}
         setCurrentNumberPage={setCurrentPage}
       />

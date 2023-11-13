@@ -2,16 +2,16 @@
 
 import SingleFileUpload from '@/components/single-file-upload';
 import Switch from '@/components/switch';
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import Button from '@/components/button';
 
 import { useSearchParams } from 'next/navigation';
 import Camera from '@/components/camera';
 import TextInput from '@/components/text-input';
-import GroupPagination, { ImageData } from '@/components/scrape-pagination';
+import { ImageData } from '@/components/scrape-pagination';
 import { Scrapper } from '@/components/scrapper';
-import { makeApiRequest } from '@/lib/helper';
 import toast from 'react-hot-toast';
+import { makeApiRequest } from '@/lib/helper';
 
 export default function Home() {
   // Initialize state variables for image query, image data, texture option, specific limits, and limits count
@@ -23,6 +23,7 @@ export default function Home() {
   const [imageDataSetMatrix, setImageDataSetMatrix] = useState<number[][][][]>(
     []
   );
+  const [imageDataSetBase64, setImageDataSetBase64] = useState<string[]>([]);
   const [outputFileName, setOutputFileName] = useState<string>('');
 
   // Get the search parameters from the URL
@@ -30,32 +31,11 @@ export default function Home() {
   // Determine if the camera option is selected based on the search parameters
   const isCamera = searchParams.get('camera') === 'true';
 
-  const memoizedImageMatrixDataSet = useMemo(() => {
-    return imageDataSetMatrix;
-  }, [imageDataSetMatrix]);
-
-  const memoizedImageMatrixQuery = useMemo(() => {
-    return imageMatrixQuery;
-  }, [imageMatrixQuery]);
-
-  useEffect(() => {
-    console.log(
-      'Panjang array matrix dataset',
-      memoizedImageMatrixDataSet.length
-    );
-    console.log('Array dataset', memoizedImageMatrixDataSet);
-    console.log('Isi Query', memoizedImageMatrixQuery);
-  }, [memoizedImageMatrixDataSet, memoizedImageMatrixQuery]);
-
   const [resultPercentages, setResultPercentages] = useState<number[]>(
     imageDataSet.map((_, index) => (index + 1) * 10)
   );
 
   const [elapsedTime, setElapsedTime] = useState<number>(0);
-
-  useEffect(() => {
-    setResultPercentages(imageDataSet.map((_, index) => (index + 1) * 10));
-  }, [imageDataSet]);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const handleDownloadPDF = async () => {
@@ -64,11 +44,9 @@ export default function Home() {
       imageDataSet &&
       imageDataSet.length > 0
     ) {
-      // Convert the image query to a base64 string
-
       // Convert the image URLs in the data set to base64 strings
       setIsLoading(true);
-      const imageDataSetBase64 = await makeApiRequest({
+      makeApiRequest({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -79,15 +57,29 @@ export default function Home() {
         loadingMessage: 'Loading...',
         successMessage: 'Successfully fetched images!',
         endpoint: '/api/convert-image-to-base64',
-        onSuccess: (data) => {},
+        onSuccess: (data) => {
+          setImageDataSetBase64(data);
+        },
       });
 
+      // Create an array of indices and sort it based on resultPercentages
+      const indices = resultPercentages.map((_, index) => index);
+      indices.sort((a, b) => resultPercentages[b] - resultPercentages[a]);
+
+      // Reorder imageDataSet and resultPercentages based on the sorted indices
+      const sortedImageDataSet = indices.map(
+        (index) => imageDataSetBase64[index]
+      );
+      const sortedResultPercentages = indices.map(
+        (index) => resultPercentages[index]
+      );
       const data = {
         image_query: isCamera ? imageQueryCam : imageQuery,
-        image_data_set: imageDataSetBase64,
+        image_data_set: sortedImageDataSet,
         is_texture: isTexture,
-        result_percentage_set: resultPercentages,
+        result_percentage_set: sortedResultPercentages,
         output_filename: outputFileName,
+        elapsed_time: elapsedTime,
       };
 
       makeApiRequest({
@@ -111,7 +103,6 @@ export default function Home() {
       });
     }
   };
-
   const handleCBIR = async () => {
     if (
       imageDataSetMatrix &&
@@ -161,15 +152,33 @@ export default function Home() {
             imageBase64={imageQuery}
             setImageBase64={setImageQuery}
             setImageMatrix={setImageMatrixQuery}
+            type='normal'
           />
         )}
       </section>
       <hr className='border-1 border-slate-300 w-full' />
 
       <section className='flex flex-col gap-4'>
-        <h2 className='font-poppins text-xl lg:text-2xl flex font-semibold'>
-          Data set input
-        </h2>
+        <div className='flex flex-col gap-3'>
+          <h2 className='font-poppins text-xl lg:text-2xl flex font-semibold'>
+            Data set input
+          </h2>
+          {elapsedTime > 0 && (
+            <div className='flex justify-between w-full'>
+              <p className='font-poppins text-base lg:text-lg'>
+                Total Results: {imageDataSet.length} in{' '}
+                {elapsedTime.toPrecision(3)} seconds
+              </p>
+              <p className='font-poppins text-base lg:text-lg'>
+                Results with Percentage {'>'} 60%:{' '}
+                {
+                  resultPercentages.filter((percentage) => percentage > 60)
+                    .length
+                }
+              </p>
+            </div>
+          )}
+        </div>
         <Scrapper
           setImageData={setImageDataSet}
           imageData={imageDataSet}
@@ -197,7 +206,7 @@ export default function Home() {
             color='gradient-bp'
             size='small'
             isRounded
-            onClick={handleDownloadPDF}
+            onClick={handleCBIR}
             disabled={!imageQuery || !imageDataSet || imageDataSet.length <= 0}
           >
             Start Processing

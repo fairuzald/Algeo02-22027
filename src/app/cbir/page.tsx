@@ -33,36 +33,32 @@ export default function Home() {
   const [outputFileName, setOutputFileName] = useState<string>('');
   const [elapsedTime, setElapsedTime] = useState<number>(0);
 
-  const memoizedImageMatrixDataSet = useMemo(() => {
-    return imageMatrixDataSet;
-  }, [imageMatrixDataSet]);
-
-  const memoizedImageMatrixQuery = useMemo(() => {
-    return imageMatrixQuery;
-  }, [imageMatrixQuery]);
-
-  useEffect(() => {
-    console.log(
-      'Panjang array matrix dataset',
-      memoizedImageMatrixDataSet.length
-    );
-    console.log('Array dataset', memoizedImageMatrixDataSet);
-    console.log('Isi Query', memoizedImageMatrixQuery);
-  }, [memoizedImageMatrixDataSet, memoizedImageMatrixQuery]);
-
   const handleDownloadPDF = async () => {
     if (
       (imageQuery || imageQueryCam) &&
       imageDataSet &&
-      imageDataSet.length > 0
+      imageDataSet.length > 0 &&
+      elapsedTime > 0
     ) {
       setIsLoading(true);
+
+      // Create an array of indices and sort it based on resultPercentages
+      const indices = resultPercentages.map((_, index) => index);
+      indices.sort((a, b) => resultPercentages[b] - resultPercentages[a]);
+
+      // Reorder imageDataSet and resultPercentages based on the sorted indices
+      const sortedImageDataSet = indices.map((index) => imageDataSet[index]);
+      const sortedResultPercentages = indices.map(
+        (index) => resultPercentages[index]
+      );
+
       const data = {
         image_query: isCamera ? imageQueryCam : imageQuery,
-        image_data_set: imageDataSet,
+        image_data_set: sortedImageDataSet,
         is_texture: isTexture,
-        result_percentage_set: resultPercentages,
+        result_percentage_set: sortedResultPercentages,
         output_filename: outputFileName,
+        elapsed_time: elapsedTime,
       };
 
       makeApiRequest({
@@ -135,20 +131,30 @@ export default function Home() {
             imageBase64={imageQuery}
             setImageBase64={setImageQuery}
             setImageMatrix={setImageMatrixQuery}
+            type='yolo'
           />
         )}
       </section>
       <hr className='border-1 border-slate-300 w-full' />
       <section className='flex flex-col gap-4'>
-        <div className='flex justify-between w-full'>
+        <div className='flex flex-col gap-3'>
           <h2 className='font-poppins text-xl lg:text-2xl flex font-semibold'>
             Data set input
           </h2>
           {elapsedTime > 0 && (
-            <p className='font-poppins text-base lg:text-lg'>
-              {imageDataSet.length} Results in{' '}
-              {elapsedTime.toPrecision(4).toLocaleString()} seconds
-            </p>
+            <div className='flex justify-between w-full'>
+              <p className='font-poppins text-base lg:text-lg'>
+                Total Results: {imageDataSet.length} in{' '}
+                {elapsedTime.toPrecision(3)} seconds
+              </p>
+              <p className='font-poppins text-base lg:text-lg'>
+                Results with Percentage {'>'} 60%:{' '}
+                {
+                  resultPercentages.filter((percentage) => percentage > 60)
+                    .length
+                }
+              </p>
+            </div>
           )}
         </div>
         <MultipleFileUpload
@@ -156,6 +162,7 @@ export default function Home() {
           imageBase64s={imageDataSet}
           setMatrixImages={setImageMatrixDataSet}
           percentages={resultPercentages}
+          setPercentages={setResultPercentages}
         />
         <div className='flex items-center flex-wrap justify-center gap-4 py-4'>
           <p className='text-lg lg:text-2xl font-poppins font-semibold text-gold'>

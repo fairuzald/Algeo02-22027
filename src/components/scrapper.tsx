@@ -39,14 +39,18 @@ export const Scrapper: React.FC<ScrapperProps> = ({
         isSpecificLimits ? limits : 0
       }`,
       onSuccess: (data: ImageDataWithMatrix[]) => {
+        // Separate data into matrix and non-matrix
         const nonMatrixData = data.map(({ matrix, ...rest }) => rest);
-        const matrixData = data.map(({ matrix }) => matrix);
-        setImageData(nonMatrixData as ImageDataType[]);
+
+        const matrixData = data
+          .filter((item) => item.matrix)
+          .map(({ matrix }) => matrix);
+
+        setImageData(nonMatrixData);
         setImageDataMatrix(matrixData);
       },
     });
   };
-
   return (
     <>
       {/* Display image data pagination component if there is image data, otherwise display data input form */}

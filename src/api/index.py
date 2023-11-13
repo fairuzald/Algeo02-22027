@@ -1,5 +1,5 @@
 import time
-from fastapi import FastAPI, File,  Request, UploadFile
+from fastapi import FastAPI, File, HTTPException,  Request, UploadFile
 from typing import List
 from urllib.parse import urlparse, urlunparse
 import numpy as np
@@ -38,6 +38,10 @@ async def convert_image_to_base64(request: ConvertImageToBase64Request):
 @app.post("/api/convert")
 async def convert(file: UploadFile = File(...)):
     return await imageProcessor.convert(file)
+
+@app.post("/api/convert-no-yolo")
+async def convert(file: UploadFile = File(...)):
+    return await imageProcessor.convertWithoutYolo(file)
 
 @app.post("/api/convert-multiple")
 async def convert_multiple(files: List[UploadFile] = File(...)):
@@ -97,15 +101,15 @@ async def get_image_scrape(url: str, limits: int):
     return scraper.get_image(full_url, limits)
 
 pdf_creator = PDFCreator()
-
-class Data(BaseModel):
-    image_query: str
-    image_data_set: list[str]
-    is_texture: bool
-    result_percentage_set: list[float]
-    output_filename: str
-
 @app.post("/api/create-pdf-file")
-async def create_pdf_file(data: Data):
-    result = pdf_creator.create_pdf(data.model_dump())
-    return result
+async def create_pdf_file(data: dict):
+        print(data["elapsed_time"])
+        result = pdf_creator.create_pdf(
+            data["image_query"],
+            data["image_data_set"],
+            data["is_texture"],
+            data["result_percentage_set"],
+            data["output_filename"],
+            data["elapsed_time"],
+        )
+        return result

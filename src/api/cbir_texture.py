@@ -73,4 +73,3 @@ class ImageComparatorByTexture:
             similarities.append(similarity*100)
         return similarities
 
-
