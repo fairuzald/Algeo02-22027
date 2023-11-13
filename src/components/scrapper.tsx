@@ -121,7 +121,7 @@ export const Scrapper: React.FC<ScrapperProps> = ({
         <p className='text-lg lg:text-2xl font-poppins font-semibold text-gold'>
           Other Input Query Option:
         </p>
-        <CustomLink color='gradient-bp' href='/' size='medium'>
+        <CustomLink color='gradient-bp' href='/cbir' size='medium'>
           Files Upload
         </CustomLink>
       </div>

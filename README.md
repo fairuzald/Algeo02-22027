@@ -91,6 +91,9 @@ The integration of color and texture parameters enhances CBIR accuracy and effic
 ## Screenshots
 
 ![CBIR File input](./cbir-file-file.jpg)
+![CBIR Camera input](./cbir-camera.jpg)
+![CBIR Scrape input](./cbir-scrape.jpg)
+![CBIR API DOCS](./api-docs.jpg)
 
 ## Development
 
@@ -139,7 +142,14 @@ yarn install
 pnpm install
 ```
 
-### 5. Run Next.js Development Server
+### 5. Copy .env file from .env.example and fill the values
+
+```bash
+NODE_ENV = 'development'
+NEXT_PUBLIC_API_URL = 'http://localhost:8000'
+```
+
+### 6. Run Next.js Development Server
 
 ```bash
 npm run dev
@@ -149,7 +159,7 @@ yarn dev
 pnpm dev
 ```
 
-### Step 6: Open your browser and navigate to
+### 7: Open your browser and navigate to
 
 Client-side is running on [localhost:3000](http://localhost:3000), and the server is on [localhost:8000](http://localhost:8000).
 
