@@ -13,7 +13,7 @@ from api.object_detector import ObjectDetector
 detector = ObjectDetector()
 
 class ImageProcessing:
-    async def convert(self,file: UploadFile) -> Union[Dict[str, List[List[int]]], Dict[str, str]]:
+    async def convert(self, file: UploadFile) -> Union[Dict[str, List[List[int]]], Dict[str, str]]:
         try:
             contents = await file.read()
             image = Image.open(io.BytesIO(contents))
@@ -35,7 +35,7 @@ class ImageProcessing:
             raise HTTPException(status_code=422, detail="Error: Invalid file format")
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
-        
+
     async def convertWithoutYolo(self, file: UploadFile) -> Union[Dict[str, List[List[int]]], Dict[str, str]]:
         try:
             contents = await file.read()
@@ -95,6 +95,8 @@ class ImageProcessing:
             raise HTTPException(status_code=422, detail="Error: Invalid file format")
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+    
+    # Nested class for Pydantic model
     class ImageUrls(BaseModel):
         urls: List[str]
 

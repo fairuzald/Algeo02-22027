@@ -8,7 +8,6 @@ class ObjectDetector:
         try:
             # Get the current directory
             current_dir = os.path.dirname(os.path.abspath(__file__))
-            
             weights_path = os.path.join(current_dir, "yolo7.weights")
             cfg_path = os.path.join(current_dir, "yolo7.cfg")
 
