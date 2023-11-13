@@ -15,6 +15,19 @@
 
 Welcome to the Content-Based Image Retrieval (CBIR) application! This project combines the power of Next.js for the frontend and FastAPI for the API backend. The application allows users to perform image searches based on content, utilizing both color and texture parameters. Additionally, it integrates an Object Detector based on YOLO (You Only Look Once) for automatic image cropping, enhancing the precision of search results.
 
+## Table of Contents
+
+- [Demo](#demo)
+- [Depedencies](#depedencies)
+- [Concept](#concept)
+- [Features](#features)
+- [Screenshots](#screenshots)
+- [Development](#development)
+- [Project Status](#project-status)
+- [Room for Improvement](#room-for-improvement)
+- [Acknowledgements](#acknowledgements)
+- [Mainteners](#mainteners)
+
 ## Demo
 
 Check out the live demo: [CBIR Demo](https://algeo02-22027.vercel.app/)
@@ -29,6 +42,7 @@ Check out the live demo: [CBIR Demo](https://algeo02-22027.vercel.app/)
 - **Requests:** Library for making HTTP requests.
 - **BeautifulSoup:** Library for web scraping.
 - **Uvicorn:** ASGI server for running FastAPI applications.
+- **Yolo:** Real-Time Object Detection.
 
 ### Frontend Dependencies (JavaScript/Node):
 
@@ -36,6 +50,22 @@ Check out the live demo: [CBIR Demo](https://algeo02-22027.vercel.app/)
 - **Tailwind CSS:** Utility-first CSS framework for styling.
 - **React:** JavaScript library for building user interfaces.
 - **React-Hot-Toast:** Toast notifications for React applications.
+
+## Concept
+
+### Content-Based Image Retrieval (CBIR)
+
+CBIR involves representing images as pixel or grayscale matrices, transformed into feature vectors for comparison. The application employs cosine similarity to compare feature vectors of query and dataset images.
+
+### CBIR with Color Parameter
+
+CBIR with a color parameter involves converting images to the HSV format, performing color histogram searches (global and block), and utilizing cosine similarity to compare color feature vectors.
+
+### CBIR with Texture Parameter
+
+CBIR with a texture parameter involves grayscale conversion, co-occurrence matrix creation for texture extraction, and measuring similarity between texture feature vectors using cosine similarity.
+
+The integration of color and texture parameters enhances CBIR accuracy and efficiency, reducing reliance on text-based or keyword searches and providing an intuitive image exploration experience.
 
 ## Features
 
@@ -58,56 +88,9 @@ Check out the live demo: [CBIR Demo](https://algeo02-22027.vercel.app/)
 5. **Download Results in PDF Format:**
    Download search results, including cosine similarities, in PDF format for easy storage and sharing.
 
-## Concept
+## Screenshots
 
-### Content-Based Image Retrieval (CBIR)
-
-CBIR involves representing images as pixel or grayscale matrices, transformed into feature vectors for comparison. The application employs cosine similarity to compare feature vectors of query and dataset images.
-
-### CBIR with Color Parameter
-
-CBIR with a color parameter involves converting images to the HSV format, performing color histogram searches (global and block), and utilizing cosine similarity to compare color feature vectors.
-
-### CBIR with Texture Parameter
-
-CBIR with a texture parameter involves grayscale conversion, co-occurrence matrix creation for texture extraction, and measuring similarity between texture feature vectors using cosine similarity.
-
-The integration of color and texture parameters enhances CBIR accuracy and efficiency, reducing reliance on text-based or keyword searches and providing an intuitive image exploration experience.
-
-## How to Use
-
-Page on the [Website](https://algeo02-22027.vercel.app/):
-
-1. **Access CBIR and Scrapping**
-
-   - Navigate to the "CBIR" page to perform Content-Based Image Retrieval with a dataset input file.
-   - Visit the "Scrapping" page to input URLs and perform web scraping.
-
-2. **Query Input Options:**
-
-   - Choose query input options:
-     - **Camera:** Use the device camera to capture an image.
-     - **Upload File:** Upload an image file from device storage.
-
-3. **Select CBIR Processing Type:**
-
-   - After selecting a query, choose the desired CBIR processing type based on color or texture.
-
-4. **Automated Processing with YOLO Detector:**
-
-   - Uploaded images undergo automatic processing using the YOLO-based Object Detector for automated cropping.
-
-5. **Search Process and Results Display:**
-
-   - Click the "Search" button to initiate cosine similarity search between the query image and dataset.
-   - View a set of similar images, sorted by similarity percentage.
-
-6. **Additional Information:**
-
-   - Obtain information on the number of displayed images and program execution time.
-
-7. **Download Results in PDF:**
-   - After completion, download the analysis results by pressing the "Download PDF" button.
+![CBIR File input](./cbir-file-file.jpg)
 
 ## Development
 
@@ -169,6 +152,20 @@ pnpm dev
 ### Step 6: Open your browser and navigate to
 
 Client-side is running on [localhost:3000](http://localhost:3000), and the server is on [localhost:8000](http://localhost:8000).
+
+## Project Status
+
+Project is complete
+
+## Room for Improvement
+
+- Optimalization of the Algorithm code
+- Adding more features
+
+## Acknowledgements
+
+- Thanks To Allah SWT
+- Many thanks to Dr. Ir. Rinaldi Munir, M.T. for his guidance and support
 
 ## Maintainers : cukurukuk team
 
