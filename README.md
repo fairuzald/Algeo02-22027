@@ -113,7 +113,59 @@ Page on the [Website](https://algeo02-22027.vercel.app/):
 
 To run the application locally:
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
+# Development Guide
+
+This guide provides step-by-step instructions for setting up and running the Content-Based Image Retrieval (CBIR) application locally for development purposes.
+
+## Prerequisites
+
+Before starting the development process, make sure you have the following software installed on your machine:
+
+- [Node.js](https://nodejs.org/) (LTS version recommended)
+- [Python](https://www.python.org/) (3.6 or later)
+- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/) (for managing JavaScript dependencies)
+- [Virtualenv](https://virtualenv.pypa.io/) (for creating Python virtual environments)
+
+## 1. Clone the Repository
+
+```bash
+git clone <https://github.com/fairuzald/Algeo02-22027>
+cd <Algeo02-22027>
+```
+
+## 2. Install Frontend Dependencies
+
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+```
+
+## 3. Create and Activate Python Virtual Environment
+
+```bash
+python -m venv venv
+# For Windows
+.\venv\Scripts\activate
+# For macOS/Linux
+source venv/bin/activate
+```
+
+## 4. Navigate to the Source (src) Directory
+
+```bash
+cd src
+
+```
+
+## 5. Run Next.js Development Server
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+```
