@@ -21,6 +21,7 @@ interface MultipleFileUploadProps {
   setImageBase64s: React.Dispatch<React.SetStateAction<string[]>>;
   imageBase64s: string[];
   setMatrixImages: React.Dispatch<React.SetStateAction<number[][][][]>>;
+  matrixImages: number[][][][];
   percentages: number[];
   setPercentages: React.Dispatch<React.SetStateAction<number[]>>;
 }
@@ -32,6 +33,7 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
   setMatrixImages,
   percentages,
   setPercentages,
+  matrixImages,
 }) => {
   // State variables for managing the filesChange, image URLs, and matrix images
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -44,9 +46,19 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
     const imageFiles = selectedFiles.filter((file) =>
       IMAGE_FORMAT.includes(file.type)
     );
-    if (imageFiles.length > 0) {
+
+    // Pecah data menjadi batch
+    const batchSize = 10;
+    const batches = [];
+    for (let i = 0; i < imageFiles.length; i += batchSize) {
+      const batch = imageFiles.slice(i, i + batchSize);
+      batches.push(batch);
+    }
+
+    // Kirim setiap batch
+    for (const batch of batches) {
       const formData = new FormData();
-      imageFiles.forEach((file) => {
+      batch.forEach((file) => {
         formData.append('files', file);
       });
 
@@ -58,17 +70,29 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
         successMessage: 'Data set processing successful!',
         endpoint: '/api/convert-multiple',
         onSuccess: (data) => {
-          setImageFiles(imageFiles);
+          // Dapatkan nilai sebelumnya
+          const prevMatrixImages = [...matrixImages];
+          const prevImageBase64s = [...imageBase64s];
+
+          // Tambahkan data dari batch ke nilai sebelumnya
           if (data.matrices) {
-            setMatrixImages(data.matrices);
+            setMatrixImages((prevMatrixImages) => [
+              ...prevMatrixImages,
+              ...data.matrices,
+            ]);
           }
+
           if (data.base64_images) {
-            setImageBase64s(data.base64_images);
+            setImageBase64s((prevImageBase64s) => [
+              ...prevImageBase64s,
+              ...data.base64_images,
+            ]);
           }
+
+          // Tambahkan data batch ke state setImageFiles
+          setImageFiles((prevFiles) => [...prevFiles, ...batch]);
         },
       });
-    } else {
-      toast.error('Upload folder dengan ekstensi file png, jpg, atau jpeg');
     }
   };
 

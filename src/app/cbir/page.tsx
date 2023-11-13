@@ -2,7 +2,7 @@
 import SingleFileUpload from '@/components/single-file-upload';
 import MultipleFileUpload from '@/components/multiple-file-upload';
 import Switch from '@/components/switch';
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import Button from '@/components/button';
 
 import { useSearchParams } from 'next/navigation';
@@ -10,9 +10,11 @@ import Camera from '@/components/camera';
 import CustomLink from '@/components/custom-link';
 import { makeApiRequest } from '@/lib/helper';
 import TextInput from '@/components/text-input';
+import toast from 'react-hot-toast';
 
 export default function Home() {
   // Image Query Data
+
   const [imageQuery, setImageQuery] = useState<string>('');
   const [imageMatrixQuery, setImageMatrixQuery] = useState<number[][][]>([]);
   const [imageQueryCam, setImageQueryCam] = useState<string>('');
@@ -26,6 +28,19 @@ export default function Home() {
   // Result Percentage
   const [resultPercentages, setResultPercentages] = useState<number[]>([]);
 
+  const triggerCBIRProcessing = (imageMatrix: number[][][]) => {
+    // Check if the dataset is available
+    if (imageDataSet && imageDataSet.length > 0) {
+      // Set the image matrix for CBIR processing
+      setImageMatrixQuery(imageMatrix);
+
+      // Call the CBIR processing function
+      handleCBIR();
+    } else {
+      // Handle the case where the dataset is not available
+      toast.error('Dataset is not available for CBIR processing');
+    }
+  };
   // Feature State
   const [isTexture, setIsTexture] = useState<boolean>(false);
   const searchParams = useSearchParams();
@@ -100,8 +115,10 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        loadingMessage: 'Sending request...',
-        successMessage: 'Request successful!',
+        loadingMessage: isTexture
+          ? 'CBIR Texture Processing...'
+          : 'CBIR Color Processing',
+        successMessage: 'CBIR successful!',
         endpoint: isTexture ? '/api/cbir-texture' : '/api/cbir-color',
         onSuccess: (data) => {
           setIsLoading(false);
@@ -125,6 +142,7 @@ export default function Home() {
             imageMatrix={imageMatrixQuery}
             setImageMatrix={setImageMatrixQuery}
             isLoadingOutside={isLoading}
+            triggerCBIRProcessing={triggerCBIRProcessing}
           ></Camera>
         ) : (
           <SingleFileUpload
@@ -158,6 +176,7 @@ export default function Home() {
           )}
         </div>
         <MultipleFileUpload
+          matrixImages={imageMatrixDataSet}
           setImageBase64s={setImageDataSet}
           imageBase64s={imageDataSet}
           setMatrixImages={setImageMatrixDataSet}

@@ -12,6 +12,7 @@ interface CameraProps {
   imageMatrix: number[][][];
   setImageMatrix: React.Dispatch<React.SetStateAction<number[][][]>>;
   isLoadingOutside?: boolean;
+  triggerCBIRProcessing: (imageMatrix: number[][][]) => void;
 }
 
 const Camera: React.FC<CameraProps> = ({
@@ -20,6 +21,7 @@ const Camera: React.FC<CameraProps> = ({
   imageMatrix,
   setImageMatrix,
   isLoadingOutside = false,
+  triggerCBIRProcessing,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -93,6 +95,7 @@ const Camera: React.FC<CameraProps> = ({
               if (data.matrix) {
                 setImageMatrix(data.matrix);
                 setImageData(data.base64);
+                triggerCBIRProcessing(data.matrix);
                 setIsLoading(false);
               }
             },

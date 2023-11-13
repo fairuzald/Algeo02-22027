@@ -12,13 +12,6 @@ const Pagination = ({
   setCurrentNumberPage: React.Dispatch<React.SetStateAction<number>>;
 }) => {
   const numbers = Array.from({ length: numberPage }, (_, index) => index + 1);
-  useEffect(() => {
-    if (currentNumberPage < 1) {
-      setCurrentNumberPage(1);
-    } else if (currentNumberPage > numberPage) {
-      setCurrentNumberPage(numberPage);
-    }
-  }, [currentNumberPage, numberPage, setCurrentNumberPage]);
 
   // Tentukan batas awal dan akhir untuk menampilkan halaman
   const startPage = Math.max(
@@ -31,14 +24,16 @@ const Pagination = ({
   );
 
   return (
-    <div className='flex gap-5'>
+    <div className='flex gap-5 transition-all duration-300'>
       {numberPage > 1 && (
         <button
           onClick={(e) => {
             e.preventDefault();
-            setCurrentNumberPage(currentNumberPage - 1);
+            currentNumberPage !== startPage &&
+              setCurrentNumberPage(currentNumberPage - 1);
           }}
-          className='flex items-center justify-center sm:w-10 sm:h-10 w-6 h-6 text-sm md:text-base lg:text-2xl lg:w-[60px] lg:h-[60px] p-[1px] rounded-full bg-gradient-to-tr from-[#733bd4] to-[#1861d9]  drop-shadow-[0px_0px_10px_rgba(190,1,246,0.5)]'
+          disabled={currentNumberPage == startPage}
+          className='flex items-center justify-center scale-[80%] sm:w-10 sm:h-10 w-6 h-6 text-sm md:text-base lg:text-2xl lg:w-[60px] lg:h-[60px] p-[1px] rounded-full bg-gradient-to-tr from-[#733bd4] to-[#1861d9]  drop-shadow-[0px_0px_10px_rgba(190,1,246,0.5)]'
         >
           <ChevronIcon
             size={20}
@@ -54,21 +49,22 @@ const Pagination = ({
               e.preventDefault();
               setCurrentNumberPage(1);
             }}
-            className='flex items-center justify-center sm:w-10 sm:h-10 w-6 h-6 text-sm md:text-base lg:text-2xl lg:w-[60px] lg:h-[60px] p-[1px] rounded-full bg-gradient-to-tr from-[#733bd4] to-[#1861d9]  drop-shadow-[0px_0px_10px_rgba(190,1,246,0.5)]'
+            className='flex items-center scale-[90%] justify-center sm:w-10 sm:h-10 w-6 h-6 text-sm md:text-base lg:text-2xl lg:w-[60px] lg:h-[60px] p-[1px] rounded-full bg-gradient-to-tr from-[#733bd4] to-[#1861d9]  drop-shadow-[0px_0px_10px_rgba(190,1,246,0.5)]'
           >
             <p className='text-white uppercase '>1</p>
           </button>
-          {numberPage > 7 && (
+          {
             <button
               onClick={(e) => {
                 e.preventDefault();
-                setCurrentNumberPage(currentNumberPage - 1);
+                currentNumberPage !== endPage &&
+                  setCurrentNumberPage(currentNumberPage - 1);
               }}
-              className='flex items-center justify-center sm:w-10 sm:h-10 w-6 h-6 text-sm md:text-base lg:text-2xl lg:w-[60px] lg:h-[60px] p-[1px] rounded-full bg-gradient-to-tr from-[#733bd4] to-[#1861d9]  drop-shadow-[0px_0px_10px_rgba(190,1,246,0.5)]'
+              className='flex items-center justify-center scale-[90%] sm:w-10 sm:h-10 w-6 h-6 text-sm md:text-base lg:text-2xl lg:w-[60px] lg:h-[60px] p-[1px] rounded-full bg-gradient-to-tr from-[#733bd4] to-[#1861d9]  drop-shadow-[0px_0px_10px_rgba(190,1,246,0.5)]'
             >
               <p className='text-white uppercase '>...</p>
             </button>
-          )}
+          }
         </>
       )}
       {numberPage > 1 &&
@@ -81,10 +77,10 @@ const Pagination = ({
               setCurrentNumberPage(number);
             }}
             aria-label={`Page-${number}`}
-            className={`sm:w-10 sm:h-10 w-6 h-6 text-sm md:text-base lg:text-2xl lg:w-[60px] hover:scale-105   drop-shadow-[0px_0px_10px_rgba(190,1,246,0.5)] ${
+            className={`sm:w-10 sm:h-10 w-6 h-6 text-sm md:text-base lg:text-2xl lg:w-[60px] transition-all duration-300 hover:scale-105   drop-shadow-[0px_0px_10px_rgba(190,1,246,0.5)] ${
               currentNumberPage === number
                 ? 'bg-blue-600 drop-shadow-none'
-                : 'bg-gradient-to-tr from-[#733bd4] to-[#1861d9]'
+                : 'bg-gradient-to-tr from-[#733bd4] to-[#1861d9] scale-[90%]'
             } lg:h-[60px] p-[1px] rounded-full flex items-center justify-center
           `}
           >
@@ -95,7 +91,7 @@ const Pagination = ({
       {/* Tampilkan ellipsis di akhir jika endPage < numberPage */}
       {endPage < numberPage && (
         <>
-          {numberPage > 7 && endPage != numberPage - 1 && (
+          {endPage != numberPage - 1 && (
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -111,7 +107,7 @@ const Pagination = ({
               e.preventDefault();
               setCurrentNumberPage(1);
             }}
-            className='flex items-center  justify-center sm:w-10 sm:h-10 w-6 h-6 text-sm md:text-base lg:text-2xl lg:w-[60px] lg:h-[60px] p-[1px] rounded-full bg-gradient-to-tr from-[#733bd4] to-[#1861d9]  drop-shadow-[0px_0px_10px_rgba(190,1,246,0.5)]'
+            className='flex items-center scale-[90%] justify-center sm:w-10 sm:h-10 w-6 h-6 text-sm md:text-base lg:text-2xl lg:w-[60px] lg:h-[60px] p-[1px] rounded-full bg-gradient-to-tr from-[#733bd4] to-[#1861d9]  drop-shadow-[0px_0px_10px_rgba(190,1,246,0.5)]'
           >
             {numberPage}
           </button>
@@ -121,9 +117,11 @@ const Pagination = ({
         <button
           onClick={(e) => {
             e.preventDefault();
-            setCurrentNumberPage(currentNumberPage + 1);
+            currentNumberPage !== endPage &&
+              setCurrentNumberPage(currentNumberPage + 1);
           }}
-          className='flex items-center justify-center sm:w-10 sm:h-10 w-6 h-6 text-sm md:text-base lg:text-2xl lg:w-[60px] lg:h-[60px] p-[1px] rounded-full bg-gradient-to-tr from-[#733bd4] to-[#1861d9]  drop-shadow-[0px_0px_10px_rgba(190,1,246,0.5)]'
+          disabled={currentNumberPage == endPage}
+          className='flex items-center justify-center scale-[80%] sm:w-10 sm:h-10 w-6 h-6 text-sm md:text-base lg:text-2xl lg:w-[60px] lg:h-[60px] p-[1px] rounded-full bg-gradient-to-tr from-[#733bd4] to-[#1861d9]  drop-shadow-[0px_0px_10px_rgba(190,1,246,0.5)]'
         >
           <ChevronIcon
             size={20}

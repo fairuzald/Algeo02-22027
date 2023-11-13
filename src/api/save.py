@@ -7,9 +7,6 @@ from fastapi import HTTPException
 from fpdf import FPDF
 import tempfile
 
-from pydantic import BaseModel
-
-
 class PDFCreator:
     def __init__(self):
         self.max_width_mm = 550  # Batas lebar dalam milimeter

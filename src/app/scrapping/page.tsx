@@ -38,6 +38,20 @@ export default function Home() {
   const [elapsedTime, setElapsedTime] = useState<number>(0);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const triggerCBIRProcessing = (imageMatrix: number[][][]) => {
+    // Check if the dataset is available
+    if (imageDataSet && imageDataSet.length > 0) {
+      // Set the image matrix for CBIR processing
+      setImageMatrixQuery(imageMatrix);
+
+      // Call the CBIR processing function
+      handleCBIR();
+    } else {
+      // Handle the case where the dataset is not available
+      toast.error('Dataset is not available for CBIR processing');
+    }
+  };
   const handleDownloadPDF = async () => {
     if (
       (imageQuery || imageQueryCam) &&
@@ -104,15 +118,11 @@ export default function Home() {
     }
   };
   const handleCBIR = async () => {
-    if (
-      imageDataSetMatrix &&
-      imageDataSetMatrix.length > 0 &&
-      imageMatrixQuery
-    ) {
+    if (imageDataSet && imageDataSet.length > 0 && imageMatrixQuery) {
       setIsLoading(true);
       const data = JSON.stringify({
         matrix_query: imageMatrixQuery,
-        matrix_data_set: imageDataSetMatrix,
+        matrix_data_set: imageDataSet,
       });
       makeApiRequest({
         body: data,
@@ -120,8 +130,10 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        loadingMessage: 'Sending request...',
-        successMessage: 'Request successful!',
+        loadingMessage: isTexture
+          ? 'CBIR Texture Processing...'
+          : 'CBIR Color Processing',
+        successMessage: 'CBIR successful!',
         endpoint: isTexture ? '/api/cbir-texture' : '/api/cbir-color',
         onSuccess: (data) => {
           setIsLoading(false);
@@ -141,6 +153,7 @@ export default function Home() {
         {/* Display camera component if isCamera is true, otherwise display single file upload component */}
         {isCamera ? (
           <Camera
+            triggerCBIRProcessing={triggerCBIRProcessing}
             isLoadingOutside={isLoading}
             imageData={imageQueryCam}
             setImageData={setImageQueryCam}

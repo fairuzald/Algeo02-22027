@@ -13,27 +13,22 @@ from api.object_detector import ObjectDetector
 detector = ObjectDetector()
 
 class ImageProcessing:
-    async def convert(self, file: UploadFile) -> Union[Dict[str, List[List[int]]], Dict[str, str]]:
+    async def convert(self,file: UploadFile) -> Union[Dict[str, List[List[int]]], Dict[str, str]]:
         try:
             contents = await file.read()
-            
             image = Image.open(io.BytesIO(contents))
             matrix = np.array(image)
 
             # Detect and crop the image
             cropped_img = detector.detect_and_crop(matrix)
-            # Convert the cropped image to base64
-            pil_img = Image.fromarray(cropped_img)
 
             # Save PIL Image to memory as bytes with PNG format
             img_bytes_io = io.BytesIO()
-            pil_img.save(img_bytes_io, format='PNG')
+            Image.fromarray(cropped_img).save(img_bytes_io, format='PNG')
             img_bytes = img_bytes_io.getvalue()
 
-            # Convert bytes to base64
-            base64_img = base64.b64encode(img_bytes).decode('utf-8')
+            return {"matrix": cropped_img.tolist(), "base64": f'data:image/png;base64,{base64.b64encode(img_bytes).decode("utf-8")}'}
 
-            return {"matrix": cropped_img.tolist(), "base64": 'data:image/png;base64,'+base64_img}
         except FileNotFoundError:
             raise HTTPException(status_code=404, detail="Error: File not found")
         except ValueError:
@@ -67,35 +62,39 @@ class ImageProcessing:
     async def convert_multiple(self, files: List[UploadFile]) -> Union[Dict[str, List[List[List[int]]]], Dict[str, str]]:
         matrices = []
         base64_images = []
+
         try:
             for uploaded_file in files:
+                # Read file contents
                 contents = await uploaded_file.read()
+
+                # Process image and convert to matrix
                 image = Image.open(io.BytesIO(contents))
                 matrix = np.array(image)
 
                 # Detect and crop the image
                 cropped_img = detector.detect_and_crop(matrix)
-            
+
                 # Convert the cropped image to base64
                 pil_img = Image.fromarray(cropped_img)
-               
-                # Save PIL Image to memory as bytes with PNG format
                 img_bytes_io = io.BytesIO()
                 pil_img.save(img_bytes_io, format='PNG')
                 img_bytes = img_bytes_io.getvalue()
-
-                # Convert bytes to base64
                 base64_img = base64.b64encode(img_bytes).decode('utf-8')
-                base64_images.append(f"data:image/png;base64,{base64_img}")
+
+                # Append results to lists
                 matrices.append(cropped_img.tolist())
+                base64_images.append(f"data:image/png;base64,{base64_img}")
+
+            # Return the result as a dictionary
             return {"matrices": matrices, "base64_images": base64_images}
+
         except FileNotFoundError:
             raise HTTPException(status_code=404, detail="Error: File not found")
         except ValueError:
             raise HTTPException(status_code=422, detail="Error: Invalid file format")
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
-
     class ImageUrls(BaseModel):
         urls: List[str]
 
