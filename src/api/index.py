@@ -102,7 +102,6 @@ async def get_image_scrape(url: str, limits: int):
 pdf_creator = PDFCreator()
 @app.post("/api/create-pdf-file")
 async def create_pdf_file(data: dict):
-        print(data["elapsed_time"])
         result = pdf_creator.create_pdf(
             data["image_query"],
             data["image_data_set"],

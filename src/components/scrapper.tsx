@@ -14,6 +14,7 @@ interface ScrapperProps {
   imageDataMatrix: number[][][][];
   setImageDataMatrix: React.Dispatch<React.SetStateAction<number[][][][]>>;
   percentages?: number[];
+  setPercentages: React.Dispatch<React.SetStateAction<number[]>>;
 }
 interface ImageDataWithMatrix extends ImageDataType {
   matrix: number[][][];
@@ -25,6 +26,7 @@ export const Scrapper: React.FC<ScrapperProps> = ({
   setImageData,
   setImageDataMatrix,
   percentages,
+  setPercentages,
 }) => {
   const [isSpecificLimits, setIsSpecificLimits] = useState<boolean>(false);
   const [limits, setLimits] = useState<number>(1);
@@ -110,6 +112,7 @@ export const Scrapper: React.FC<ScrapperProps> = ({
             onClick={() => {
               setImageData([]);
               setImageDataMatrix([]);
+              setPercentages([]);
             }}
           >
             Delete all data
