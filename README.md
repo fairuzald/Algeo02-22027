@@ -1,3 +1,5 @@
+# Content-Based Image Retrieval (CBIR) Application
+
 <p align="center">
   <a href="https://algeo02-22027.vercel.app">
     <img src="https://res.cloudinary.com/dkyq76c5w/image/upload/v1699860331/cuk-removebg-preview_y357nd.png" height="96">
@@ -8,9 +10,6 @@
 <p align="center">Simple Next.js boilerplate that uses <a href="https://fastapi.tiangolo.com/">FastAPI</a> as the API backend.</p>
 
 <br/>
-# Content-Based Image Retrieval (CBIR) Application
-
-<p align="center">A Next.js and FastAPI Hybrid Application</p>
 
 ## Introduction
 
@@ -18,31 +17,46 @@ Welcome to the Content-Based Image Retrieval (CBIR) application! This project co
 
 ## Demo
 
-Check out the live demo: [CBIR Demo](https://nextjs-fastapi-starter.vercel.app/)
+Check out the live demo: [CBIR Demo](https://algeo02-22027.vercel.app/)
 
-## Deploy Your Own
+## Dependencies
 
-You can deploy your own instance with a single click using Vercel:
+### Backend Dependencies (Python):
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fdigitros%2Fnextjs-fastapi%2Ftree%2Fmain)
+- **FastAPI:** Web framework for building APIs with Python.
+- **NumPy:** Library for numerical operations in Python.
+- **OpenCV:** Library for computer vision and image processing.
+- **Requests:** Library for making HTTP requests.
+- **BeautifulSoup:** Library for web scraping.
+- **Uvicorn:** ASGI server for running FastAPI applications.
+
+### Frontend Dependencies (JavaScript/Node):
+
+- **Next.js:** React framework for building web applications.
+- **Tailwind CSS:** Utility-first CSS framework for styling.
+- **React:** JavaScript library for building user interfaces.
+- **React-Hot-Toast:** Toast notifications for React applications.
 
 ## Features
 
-- **Cosine Similarity Search:** Evaluate the cosine similarities between a query image and the dataset, providing a quick assessment of image similarity.
+1. **Cosine Similarity Search:**
+   Evaluate the cosine similarities between a query image and the dataset, providing a quick assessment of image similarity.
 
-- **Flexible Query Input:**
+2. **Flexible Query Input:**
 
-  - **Camera:** Capture an image using your device's camera.
-  - **Upload File:** Upload an image file from your device.
+   - **Camera:** Capture an image using your device's camera.
+   - **Upload File:** Upload an image file from your device.
 
-- **Dataset Input Options:**
+3. **Dataset Input Options:**
 
-  - **Folder Uploads:** Organize your dataset in folder structures for easy management.
-  - **Web Scraping:** Automatically collect a dataset from the web, offering flexibility in data gathering.
+   - **Folder Uploads:** Organize your dataset in folder structures for easy management.
+   - **Web Scraping:** Automatically collect a dataset from the web, offering flexibility in data gathering.
 
-- **Object Detector Integration (YOLO):** Implement YOLO-based Object Detection for automatic image cropping, ensuring only relevant portions are used in similarity calculations.
+4. **Object Detector Integration (YOLO):**
+   Implement YOLO-based Object Detection for automatic image cropping, ensuring only relevant portions are used in similarity calculations.
 
-- **Download Results in PDF Format:** Download search results, including cosine similarities, in PDF format for easy storage and sharing.
+5. **Download Results in PDF Format:**
+   Download search results, including cosine similarities, in PDF format for easy storage and sharing.
 
 ## Concept
 
@@ -62,7 +76,9 @@ The integration of color and texture parameters enhances CBIR accuracy and effic
 
 ## How to Use
 
-1. **Access CBIR and Scrapping Page:**
+Page on the [Website](https://algeo02-22027.vercel.app/):
+
+1. **Access CBIR and Scrapping **
 
    - Navigate to the "CBIR" page to perform Content-Based Image Retrieval with a dataset input file.
    - Visit the "Scrapping" page to input URLs and perform web scraping.

@@ -1,8 +1,7 @@
 import time
-from fastapi import FastAPI, File, HTTPException,  Request, UploadFile
+from fastapi import FastAPI, File, Request, UploadFile
 from typing import List
 from urllib.parse import urlparse, urlunparse
-import numpy as np
 from pydantic import BaseModel
 from api.scraper import ImageScraper
 from api.cbir_color import ImageComparator
