@@ -129,7 +129,9 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
     if (imageFiles && imageFiles.length > 0) {
       setImageFiles(imageFiles);
     } else {
-      toast.error('Upload folder dengan ekstensi file png, jpg, atau jpeg');
+      toast.error(
+        'Upload folder dengan ekstensi file png, jpg,webp, giff,bmp,tiff atau jpeg'
+      );
     }
   };
 

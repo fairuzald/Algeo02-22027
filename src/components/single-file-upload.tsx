@@ -58,7 +58,9 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
         },
       });
     } else {
-      toast.error('Upload file dengan ekstensi png atau jpeg');
+      toast.error(
+        'Upload folder dengan ekstensi file png, jpg,webp, giff,bmp,tiff atau jpeg'
+      );
       setImageFile(null);
     }
   };

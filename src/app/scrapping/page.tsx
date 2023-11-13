@@ -118,11 +118,15 @@ export default function Home() {
     }
   };
   const handleCBIR = async () => {
-    if (imageDataSet && imageDataSet.length > 0 && imageMatrixQuery) {
+    if (
+      imageDataSetMatrix &&
+      imageDataSetMatrix.length > 0 &&
+      imageMatrixQuery
+    ) {
       setIsLoading(true);
       const data = JSON.stringify({
         matrix_query: imageMatrixQuery,
-        matrix_data_set: imageDataSet,
+        matrix_data_set: imageDataSetMatrix,
       });
       makeApiRequest({
         body: data,
@@ -176,7 +180,7 @@ export default function Home() {
           <h2 className='font-poppins text-xl lg:text-2xl flex font-semibold'>
             Data set input
           </h2>
-          {elapsedTime > 0 && (
+          {elapsedTime > 0 && resultPercentages.length > 0 && (
             <div className='flex justify-between w-full'>
               <p className='font-poppins text-base lg:text-lg'>
                 Total Results: {imageDataSet.length} in{' '}
@@ -198,6 +202,7 @@ export default function Home() {
           setImageDataMatrix={setImageDataSetMatrix}
           imageDataMatrix={imageDataSetMatrix}
           percentages={resultPercentages}
+          setPercentages={setResultPercentages}
         />
       </section>
       <hr className='border-1 border-slate-300 w-full' />

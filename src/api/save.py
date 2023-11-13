@@ -72,14 +72,14 @@ class PDFCreator:
 
             # Add results information
             pdf.set_font("Arial", style='B', size=14)
-            pdf.multi_cell(200, 10, txt=f"{len(image_data_set)} Results with similarities in {elapsed_time} seconds:")
+            pdf.multi_cell(200, 10, txt=f"{len(image_data_set)} Results with similarities in {elapsed_time:.4f} seconds:")
 
             # Add image data and similarity percentage to PDF
             pdf.set_font("Arial", size=12)
             for index, (image_data, result_percentage) in enumerate(zip(image_data_set, result_percentage_set)):
                     image_data_file, img_w, img_h = self._process_image(image_data, f"image_data_{index}.png")
                     img_w, img_h = self._add_image_to_pdf(pdf, image_data_file, img_w, img_h)
-                    pdf.cell(200, 20, txt=f"Similarity percentage: {result_percentage}%", ln=True)
+                    pdf.cell(200, 20, txt=f"Similarity percentage: {result_percentage:.4f}%", ln=True)
 
                     # Check if the page needs to be continued to the next page
                     if pdf.get_y() + img_h > pdf.page_break_trigger:

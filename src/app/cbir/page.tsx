@@ -40,6 +40,7 @@ export default function Home() {
       // Handle the case where the dataset is not available
       toast.error('Dataset is not available for CBIR processing');
     }
+    setIsLoading(false);
   };
   // Feature State
   const [isTexture, setIsTexture] = useState<boolean>(false);
@@ -159,7 +160,7 @@ export default function Home() {
           <h2 className='font-poppins text-xl lg:text-2xl flex font-semibold'>
             Data set input
           </h2>
-          {elapsedTime > 0 && (
+          {elapsedTime > 0 && resultPercentages.length > 0 && (
             <div className='flex justify-between w-full'>
               <p className='font-poppins text-base lg:text-lg'>
                 Total Results: {imageDataSet.length} in{' '}

@@ -72,10 +72,8 @@ const Camera: React.FC<CameraProps> = ({
     return () => {
       clearInterval(interval);
     };
-  }, [countdown, isLoading]);
-  // useMemo(() => {
-  //   console.log('imageMatrix', imageMatrix);
-  // }, [imageMatrix]);
+  }, [countdown, isLoading, isLoadingOutside]);
+
   const captureImage = async () => {
     setIsLoading(true); // Set isLoading to true saat proses API dimulai
 
@@ -95,8 +93,8 @@ const Camera: React.FC<CameraProps> = ({
               if (data.matrix) {
                 setImageMatrix(data.matrix);
                 setImageData(data.base64);
-                triggerCBIRProcessing(data.matrix);
                 setIsLoading(false);
+                triggerCBIRProcessing(data.matrix);
               }
             },
           });
