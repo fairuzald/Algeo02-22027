@@ -175,7 +175,7 @@ Project is complete
 ## Acknowledgements
 
 - Thanks To Allah SWT
-- Many thanks to Dr. Ir. Rinaldi Munir, M.T. for his guidance and support
+- Many thanks to Dr. Ir. Rinaldi Munir, M.T. and Dr. Judhi Santoso, M.Sc. for his guidance and support
 
 ## Maintainers : cukurukuk team
 
