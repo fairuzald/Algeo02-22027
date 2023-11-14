@@ -22,7 +22,6 @@ Welcome to the Content-Based Image Retrieval (CBIR) application! This project co
 - [Concept](#concept)
 - [Features](#features)
 - [Screenshots](#screenshots)
-- [Structure App](#structure-app)
 - [Development](#development)
 - [Project Status](#project-status)
 - [Room for Improvement](#room-for-improvement)
@@ -95,61 +94,6 @@ The integration of color and texture parameters enhances CBIR accuracy and effic
 ![CBIR Camera input](./cbir-camera.jpg)
 ![CBIR Scrape input](./cbir-scrape.jpg)
 ![CBIR API DOCS](./api-docs.jpg)
-
-## Structure APP
-
-+---app
-| | favicon.ico
-| | globals.css
-| | layout.tsx
-| | page.tsx
-| |  
-| +---about-us
-| | page.tsx
-| |  
-| +---cbir
-| | layout.tsx
-| | page.tsx
-| |  
-| \---scrapping
-| layout.tsx
-| page.tsx
-|  
-+---components
-| | button.tsx
-| | camera.tsx
-| | custom-link.tsx
-| | group-pagination.tsx
-| | iframe-yt.tsx
-| | image-result.tsx
-| | multiple-file-upload.tsx
-| | navbar.tsx
-| | pagination.tsx
-| | scrape-pagination.tsx
-| | scrapper.tsx
-| | single-file-upload.tsx
-| | switch.tsx
-| | text-input.tsx
-| |  
-| \---icons
-| chevron-icon.tsx
-| file-upload-empty-icon.tsx
-| menu-icon.tsx
-| x-icon.tsx
-|  
-+---const
-| feature.ts
-| howtouse.ts
-|  
-+---lib
-| helper.ts
-|  
-+---public
-| Cloud-upload-alt.svg
-| white.jpg
-|  
-\---types
-image-format.ts
 
 ## Development
 
