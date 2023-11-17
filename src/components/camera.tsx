@@ -1,10 +1,10 @@
-'use client';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import CustomLink from '@/components/custom-link';
 import { usePathname } from 'next/navigation';
 import { makeApiRequest } from '@/lib/helper';
 import toast from 'react-hot-toast';
+import Button from '@/components/button';
 
 interface CameraProps {
   imageData: string;
@@ -27,6 +27,11 @@ const Camera: React.FC<CameraProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [countdown, setCountdown] = useState<number>(10);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
+
+  const flipCamera = () => {
+    setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'));
+  };
 
   useEffect(() => {
     const handleBeforeUnload = () => {};
@@ -40,11 +45,13 @@ const Camera: React.FC<CameraProps> = ({
 
   useEffect(() => {
     // Mengakses webcam
-    navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-    });
+    navigator.mediaDevices
+      .getUserMedia({ video: { facingMode } })
+      .then((stream) => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      });
 
     // Mengatur interval waktu untuk menangkap gambar
     const interval = setInterval(() => {
@@ -56,9 +63,8 @@ const Camera: React.FC<CameraProps> = ({
     return () => {
       clearInterval(interval);
     };
-  }, [isLoading, isLoadingOutside]);
+  }, [isLoading, isLoadingOutside, facingMode]);
 
-  // countdown reduce
   useEffect(() => {
     const interval = setInterval(() => {
       if (countdown > 0 && !isLoading && !isLoadingOutside) {
@@ -73,9 +79,8 @@ const Camera: React.FC<CameraProps> = ({
       clearInterval(interval);
     };
   }, [countdown, isLoading, isLoadingOutside]);
-
   const captureImage = async () => {
-    setIsLoading(true); // Set isLoading to true saat proses API dimulai
+    setIsLoading(true);
 
     if (canvasRef.current && videoRef.current) {
       const context = canvasRef.current.getContext('2d');
@@ -99,7 +104,7 @@ const Camera: React.FC<CameraProps> = ({
             },
           });
         } else {
-          setIsLoading(false); // Set isLoading to false saat proses API selesai
+          setIsLoading(false);
           toast.error('Failed to capture image!');
         }
       }
@@ -107,6 +112,7 @@ const Camera: React.FC<CameraProps> = ({
   };
 
   const pathname = usePathname();
+
   return (
     <div className='flex flex-col gap-8 items-center justify-center'>
       <div className='flex flex-col lg:flex-row justify-center gap-10 w-full items-center lg:items-stretch'>
@@ -119,13 +125,15 @@ const Camera: React.FC<CameraProps> = ({
             playsInline
             className='h-full max-lg:max-h-[280px] lg:h-[320px] 2xl:h-[480px] w-full bg-transparent'
           ></video>
-
           <canvas
             ref={canvasRef}
             width={640}
             height={480}
             className='hidden'
           ></canvas>
+          <Button size='small' color='gradient-bp' onClick={flipCamera}>
+            Flip Camera
+          </Button>
           <p className='text-white font-poppins text-base lg:text-xl text-center'>
             Video
           </p>
