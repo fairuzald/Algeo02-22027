@@ -1,12 +1,20 @@
-'use client';
-import React, { useEffect, useRef, useState } from 'react';
+// Import necessary dependencies and components
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import CustomLink from '@/components/custom-link';
 import { usePathname } from 'next/navigation';
 import { makeApiRequest } from '@/lib/helper';
 import toast from 'react-hot-toast';
 import Button from '@/components/button';
+import Webcam from 'react-webcam'; // Import the react-webcam component
 
+const FACING_MODE_USER = 'user';
+const FACING_MODE_ENVIRONMENT = 'environment';
+
+const videoConstraints = {
+  facingMode: FACING_MODE_USER,
+};
+// Define the CameraProps interface
 interface CameraProps {
   imageData: string;
   setImageData: React.Dispatch<React.SetStateAction<string>>;
@@ -14,63 +22,58 @@ interface CameraProps {
   triggerCBIRProcessing: (imageQuery: string) => void;
 }
 
+// Define the Camera component
 const Camera: React.FC<CameraProps> = ({
   imageData,
   setImageData,
   isLoadingOutside = false,
   triggerCBIRProcessing,
 }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const videoRef = useRef<Webcam>(null);
   const [countdown, setCountdown] = useState<number>(10);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
 
-  const flipCamera = () => {
-    setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'));
-  };
+  // Function to flip the camera
 
+  const flipCamera = useCallback(() => {
+    setFacingMode((prevState) =>
+      prevState === FACING_MODE_USER
+        ? FACING_MODE_ENVIRONMENT
+        : FACING_MODE_USER
+    );
+  }, []);
+
+  // Function to capture image from the camera
   const captureImage = async () => {
     setIsLoading(true);
 
-    if (canvasRef.current && videoRef.current) {
-      const context = canvasRef.current.getContext('2d');
-      if (context) {
-        context.drawImage(videoRef.current, 0, 0, 640, 480);
-        const dataUrl = canvasRef.current.toDataURL('image/png');
-        if (dataUrl) {
-          makeApiRequest({
-            body: JSON.stringify({ image_data: dataUrl }),
-            method: 'POST',
-            loadingMessage: 'Camera image processing...',
-            successMessage: 'Camera image processing successful!',
-            endpoint: '/api/convert-camera',
-            onSuccess: (data) => {
-              if (data) {
-                setImageData(data.base64);
-                setIsLoading(false);
-                triggerCBIRProcessing(data.base64 as string);
-              }
-            },
-          });
-        } else {
-          setIsLoading(false);
-          toast.error('Failed to capture image!');
-        }
+    if (videoRef.current) {
+      const dataUrl = videoRef.current.getScreenshot();
+      if (dataUrl) {
+        makeApiRequest({
+          body: JSON.stringify({ image_data: dataUrl }),
+          method: 'POST',
+          loadingMessage: 'Camera image processing...',
+          successMessage: 'Camera image processing successful!',
+          endpoint: '/api/convert-camera',
+          onSuccess: (data) => {
+            if (data) {
+              setImageData(data.base64);
+              setIsLoading(false);
+              triggerCBIRProcessing(data.base64 as string);
+            }
+          },
+        });
+      } else {
+        setIsLoading(false);
+        toast.error('Failed to capture image!');
       }
     }
   };
 
+  // useEffect hook to handle camera initialization and countdown
   useEffect(() => {
-    navigator.mediaDevices
-      .getUserMedia({ video: { facingMode } })
-      .then((stream) => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play();
-        }
-      });
-
     const interval = setInterval(() => {
       if (!isLoading && !isLoadingOutside) {
         setCountdown((prevCountdown) =>
@@ -89,26 +92,22 @@ const Camera: React.FC<CameraProps> = ({
     };
   }, [isLoading, isLoadingOutside, facingMode, countdown]);
 
+  // Get the current pathname using usePathname
   const pathname = usePathname();
 
   return (
     <div className='flex flex-col gap-8 items-center justify-center'>
       <div className='flex flex-col lg:flex-row justify-center gap-10 w-full items-center lg:items-stretch'>
         <div className='w-full lg:w-1/2 flex flex-col items-center justify-center gap-4'>
-          <video
+          <Webcam
+            audio={false}
             ref={videoRef}
-            width={640}
-            height={480}
-            autoPlay
-            playsInline
-            className='h-full max-lg:max-h-[280px] lg:h-[320px] 2xl:h-[480px] w-full bg-transparent'
-          ></video>
-          <canvas
-            ref={canvasRef}
-            width={640}
-            height={480}
-            className='hidden'
-          ></canvas>
+            videoConstraints={{
+              ...videoConstraints,
+              facingMode,
+            }}
+            screenshotFormat='image/png'
+          />
           <Button size='small' color='gradient-bp' onClick={flipCamera}>
             Flip Camera
           </Button>

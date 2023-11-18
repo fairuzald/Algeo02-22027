@@ -1,8 +1,13 @@
+import base64
+import json
+import os
 import time
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from typing import List
 from urllib.parse import urlparse, urlunparse
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from api.downloader import Downloader
 from api.scraper import ImageScraper
 from api.cbir_color import ImageComparator
 from fastapi.middleware.cors import CORSMiddleware
@@ -72,21 +77,15 @@ async def compare_images(data: dict):
     try:
         base64_query = data.get("base64_query", "")
         base64_dataset = data.get("base64_dataset", [])
-
         start_time = time.time()
         image_comparator = ImageComparatorByTexture()
-
         # Proses gambar query
         query_matrix = image_comparator.process_base64_image(base64_query)
-
         # Proses gambar dataset
         dataset_matrices = [image_comparator.process_base64_image(base64_data) for base64_data in base64_dataset]
-
         # Hitung kesamaan
         similarities = image_comparator.compare_with_dataset(query_matrix, dataset_matrices)
-
         elapsed_time = time.time() - start_time
-
         return {"similarities": similarities, "elapsed_time": elapsed_time}
     except Exception as e:
         print(f"Error in compare_images: {e}")
@@ -122,3 +121,14 @@ async def create_pdf_file(data: dict):
             data["elapsed_time"],
         )
         return result
+@app.post("/api/download_all_images")
+async def download_all_images(request: Request, output_file_name: str = None):
+    data = await request.body()
+    data_dict = json.loads(data)
+    downloader = Downloader()
+    
+    try:
+        response_data = downloader.download_all_images(data_dict, output_file_name)
+        return JSONResponse(content=response_data)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
