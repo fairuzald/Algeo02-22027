@@ -26,7 +26,7 @@ export default function Home() {
 
   const triggerCBIRProcessing = (imageQuery: string) => {
     // Check if the dataset is available
-    if (imageDataSet && imageDataSet.length > 0) {
+    if (imageQueryCam && imageDataSet.length > 0) {
       // Call the CBIR processing function
       handleCBIR();
     } else {
@@ -92,10 +92,14 @@ export default function Home() {
     }
   };
   const handleCBIR = async () => {
-    if (imageDataSet && imageDataSet.length > 0 && imageQuery) {
+    if (
+      imageDataSet &&
+      imageDataSet.length > 0 &&
+      (imageQuery || imageQueryCam)
+    ) {
       setIsLoading(true);
       const data = JSON.stringify({
-        base64_query: imageQuery,
+        base64_query: isCamera ? imageQueryCam : imageQuery,
         base64_dataset: imageDataSet,
       });
       makeApiRequest({

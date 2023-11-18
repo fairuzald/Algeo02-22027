@@ -130,6 +130,7 @@ export const Scrapper: React.FC<ScrapperProps> = ({
               onClick={() => {
                 setImageData([]);
                 setPercentages([]);
+                setLink('');
               }}
             >
               Delete all data
@@ -137,7 +138,7 @@ export const Scrapper: React.FC<ScrapperProps> = ({
             <Button
               color='gradient-bp'
               size='medium'
-              disabled={imageData.length === 0}
+              disabled={imageData.length === 0 || outputFileName === ''}
               onClick={handleDownloadImage}
             >
               Download Images

@@ -20,7 +20,6 @@ export default function Home() {
   const [imageQueryCam, setImageQueryCam] = useState<string>('');
   const [imageDataSet, setImageDataSet] = useState<ImageData[]>([]);
 
-  const [imageDataSetBase64, setImageDataSetBase64] = useState<string[]>([]);
   const [outputFileName, setOutputFileName] = useState<string>('');
 
   // Get the search parameters from the URL
@@ -38,7 +37,7 @@ export default function Home() {
 
   const triggerCBIRProcessing = (imageBase64: string) => {
     // Check if the dataset is available
-    if (imageDataSet && imageDataSet.length > 0) {
+    if (imageQueryCam && imageDataSet.length > 0) {
       // Call the CBIR processing function
       handleCBIR();
     } else {
@@ -92,10 +91,14 @@ export default function Home() {
     }
   };
   const handleCBIR = async () => {
-    if (imageDataSet && imageDataSet.length > 0 && imageQuery) {
+    if (
+      imageDataSet &&
+      imageDataSet.length > 0 &&
+      (imageQuery || imageQueryCam)
+    ) {
       setIsLoading(true);
       const data = JSON.stringify({
-        base64_query: imageQuery,
+        base64_query: isCamera ? imageQueryCam : imageQuery,
         base64_dataset: imageDataSet.map((image) => image.url),
       });
 
@@ -191,7 +194,11 @@ export default function Home() {
             size='small'
             isRounded
             onClick={handleCBIR}
-            disabled={!imageQuery || !imageDataSet || imageDataSet.length <= 0}
+            disabled={
+              (!imageQuery && !imageQueryCam) ||
+              !imageDataSet ||
+              imageDataSet.length <= 0
+            }
           >
             Start Processing
           </Button>

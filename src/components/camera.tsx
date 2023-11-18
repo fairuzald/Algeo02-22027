@@ -44,8 +44,6 @@ const Camera: React.FC<CameraProps> = ({
   const memorizeFacingMode = useMemo(() => facingMode, [facingMode]);
 
   // Function to flip the camera
-  console.log(facingMode);
-
   const flipCamera = useCallback(() => {
     setFacingMode((prevState) =>
       prevState === FACING_MODE_USER
