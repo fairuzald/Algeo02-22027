@@ -1,4 +1,5 @@
 'use client';
+import BackgroundCarousel from '@/components/background-carousel';
 import Button from '@/components/button';
 import CustomLink from '@/components/custom-link';
 import { features } from '@/const/feature';
@@ -57,13 +58,7 @@ export default function Home() {
   return (
     <main className='flex gap-8 pb-20 text-white w-full lg:gap-10 min-h-screen flex-col bg-gradient-to-tr from-[#455976] via-[55%] via-[#2A182e]  to-[#8b3f25]'>
       <div className='relative h-[calc(100vh-100px)] w-full overflow-hidden'>
-        <Image
-          alt='Tes'
-          src={'/white.jpg'}
-          width={1920}
-          height={1080}
-          className='object-center object-cover w-full h-full'
-        />
+        <BackgroundCarousel />
         <div className='absolute z-10 left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center gap-6'>
           <h1 className='font-poppins text-4xl font-bold bg-gradient-to-r from-[#1363D9] to-[#7939d4] bg-clip-text text-transparent'>
             Cukurukuk
