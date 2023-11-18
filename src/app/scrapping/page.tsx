@@ -17,12 +17,9 @@ export default function Home() {
   // Initialize state variables for image query, image data, texture option, specific limits, and limits count
   const [imageQuery, setImageQuery] = useState<string>('');
   const [isTexture, setIsTexture] = useState<boolean>(false);
-  const [imageMatrixQuery, setImageMatrixQuery] = useState<number[][][]>([]);
   const [imageQueryCam, setImageQueryCam] = useState<string>('');
   const [imageDataSet, setImageDataSet] = useState<ImageData[]>([]);
-  const [imageDataSetMatrix, setImageDataSetMatrix] = useState<number[][][][]>(
-    []
-  );
+
   const [imageDataSetBase64, setImageDataSetBase64] = useState<string[]>([]);
   const [outputFileName, setOutputFileName] = useState<string>('');
 
@@ -39,12 +36,9 @@ export default function Home() {
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const triggerCBIRProcessing = (imageMatrix: number[][][]) => {
+  const triggerCBIRProcessing = (imageBase64: string) => {
     // Check if the dataset is available
     if (imageDataSet && imageDataSet.length > 0) {
-      // Set the image matrix for CBIR processing
-      setImageMatrixQuery(imageMatrix);
-
       // Call the CBIR processing function
       handleCBIR();
     } else {
@@ -58,38 +52,18 @@ export default function Home() {
       imageDataSet &&
       imageDataSet.length > 0
     ) {
-      // Convert the image URLs in the data set to base64 strings
-      setIsLoading(true);
-      makeApiRequest({
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          urls: imageDataSet.map((data) => data.url),
-        }),
-        loadingMessage: 'Loading...',
-        successMessage: 'Successfully fetched images!',
-        endpoint: '/api/convert-image-to-base64',
-        onSuccess: (data) => {
-          setImageDataSetBase64(data);
-        },
-      });
-
       // Create an array of indices and sort it based on resultPercentages
       const indices = resultPercentages.map((_, index) => index);
       indices.sort((a, b) => resultPercentages[b] - resultPercentages[a]);
 
       // Reorder imageDataSet and resultPercentages based on the sorted indices
-      const sortedImageDataSet = indices.map(
-        (index) => imageDataSetBase64[index]
-      );
+      const sortedImageDataSet = indices.map((index) => imageDataSet[index]);
       const sortedResultPercentages = indices.map(
         (index) => resultPercentages[index]
       );
       const data = {
         image_query: isCamera ? imageQueryCam : imageQuery,
-        image_data_set: sortedImageDataSet,
+        image_data_set: sortedImageDataSet.map((image) => image.url),
         is_texture: isTexture,
         result_percentage_set: sortedResultPercentages,
         output_filename: outputFileName,
@@ -118,16 +92,13 @@ export default function Home() {
     }
   };
   const handleCBIR = async () => {
-    if (
-      imageDataSetMatrix &&
-      imageDataSetMatrix.length > 0 &&
-      imageMatrixQuery
-    ) {
+    if (imageDataSet && imageDataSet.length > 0 && imageQuery) {
       setIsLoading(true);
       const data = JSON.stringify({
-        matrix_query: imageMatrixQuery,
-        matrix_data_set: imageDataSetMatrix,
+        base64_query: imageQuery,
+        base64_dataset: imageDataSet.map((image) => image.url),
       });
+
       makeApiRequest({
         body: data,
         method: 'POST',
@@ -161,14 +132,11 @@ export default function Home() {
             isLoadingOutside={isLoading}
             imageData={imageQueryCam}
             setImageData={setImageQueryCam}
-            imageMatrix={imageMatrixQuery}
-            setImageMatrix={setImageMatrixQuery}
           ></Camera>
         ) : (
           <SingleFileUpload
             imageBase64={imageQuery}
             setImageBase64={setImageQuery}
-            setImageMatrix={setImageMatrixQuery}
             type='normal'
           />
         )}
@@ -199,8 +167,6 @@ export default function Home() {
         <Scrapper
           setImageData={setImageDataSet}
           imageData={imageDataSet}
-          setImageDataMatrix={setImageDataSetMatrix}
-          imageDataMatrix={imageDataSetMatrix}
           percentages={resultPercentages}
           setPercentages={setResultPercentages}
         />

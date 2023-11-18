@@ -58,24 +58,19 @@ class ImageScraper:
         try:
             base_url = url
             page = self._get_page(base_url)
-            # Find all image elements on the page, limited by the specified limits
             raw_image = page.find_all("img", limit=limits)
 
             if (len(raw_image) == 0 or raw_image is None or raw_image == []):
-                # If no images are found, try using the Selenium webdriver
                 page = self._get_page_driver(base_url)
                 raw_image = page.find_all("img", limit=limits)
                 print("Using Selenium webdriver")
 
             lists = []
             for event in raw_image:
-                # Get the relative URL of the image
                 relative_url = event.get("src")
-                # Get the alt text of the image
                 alt_text = event.get("alt")
                 if alt_text == "":
                     alt_text = relative_url.split("/")[-1].split(".")[0]
-                # If the relative URL is not empty, generate the absolute URL
                 if relative_url:
                     if relative_url.startswith(("http", "https")):
                         absolute_url = relative_url
@@ -84,11 +79,10 @@ class ImageScraper:
                     url_parts = urlsplit(absolute_url)
                     path = url_parts.path
                     file_extension = path.split(".")[-1].lower()
-                    # Check if the file extension is allowed
                     if file_extension in {'jpeg', 'jpg', 'png', 'gif', 'bmp', 'tiff', 'webp'}:
-                        # Convert image URL to matrix using ImageProcessing
-                        matrix = imageProcessor.url_to_matrix(absolute_url)
-                        lists.append({"url": absolute_url, "title": alt_text, "matrix": matrix})
+                        # Convert image to base64 using ImageProcessing
+                        base64_image = imageProcessor.url_to_base64(absolute_url)
+                        lists.append({"url": base64_image, "title": alt_text})
             return lists
 
         except HTTPException as e:

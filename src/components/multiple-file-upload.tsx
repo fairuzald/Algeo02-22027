@@ -20,8 +20,6 @@ declare module 'react' {
 interface MultipleFileUploadProps {
   setImageBase64s: React.Dispatch<React.SetStateAction<string[]>>;
   imageBase64s: string[];
-  setMatrixImages: React.Dispatch<React.SetStateAction<number[][][][]>>;
-  matrixImages: number[][][][];
   percentages: number[];
   setPercentages: React.Dispatch<React.SetStateAction<number[]>>;
 }
@@ -30,10 +28,8 @@ interface MultipleFileUploadProps {
 const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
   setImageBase64s,
   imageBase64s,
-  setMatrixImages,
   percentages,
   setPercentages,
-  matrixImages,
 }) => {
   // State variables for managing the filesChange, image URLs, and matrix images
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -71,16 +67,7 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
         endpoint: '/api/convert-multiple',
         onSuccess: (data) => {
           // Dapatkan nilai sebelumnya
-          const prevMatrixImages = [...matrixImages];
           const prevImageBase64s = [...imageBase64s];
-
-          // Tambahkan data dari batch ke nilai sebelumnya
-          if (data.matrices) {
-            setMatrixImages((prevMatrixImages) => [
-              ...prevMatrixImages,
-              ...data.matrices,
-            ]);
-          }
 
           if (data.base64_images) {
             setImageBase64s((prevImageBase64s) => [
@@ -139,7 +126,6 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
   const handleDelete = () => {
     setImageFiles([]);
     setImageBase64s([]);
-    setMatrixImages([]);
     setPercentages([]);
     if (hiddenFileInput.current) {
       hiddenFileInput.current.value = '';
