@@ -1,3 +1,6 @@
+'use client';
+// Import necessary components and libraries
+import React, { useState } from 'react';
 import Button from '@/components/button';
 import CustomLink from '@/components/custom-link';
 import GroupPagination, {
@@ -6,8 +9,8 @@ import GroupPagination, {
 import Switch from '@/components/switch';
 import TextInput from '@/components/text-input';
 import { makeApiRequest } from '@/lib/helper';
-import React, { useState } from 'react';
 
+// Define the ScrapperProps interface
 interface ScrapperProps {
   imageData: ImageDataType[];
   setImageData: React.Dispatch<React.SetStateAction<ImageDataType[]>>;
@@ -15,16 +18,19 @@ interface ScrapperProps {
   setPercentages: React.Dispatch<React.SetStateAction<number[]>>;
 }
 
+// Define the Scrapper component
 export const Scrapper: React.FC<ScrapperProps> = ({
   imageData,
   setImageData,
   percentages,
   setPercentages,
 }) => {
+  // State variables for specific limits, limits, and link
   const [isSpecificLimits, setIsSpecificLimits] = useState<boolean>(false);
   const [limits, setLimits] = useState<number>(1);
   const [link, setLink] = useState<string>('');
-
+  const [outputFileName, setOutputFileName] = useState<string>('');
+  // Function to handle getting data from the API
   const handleGetData = async () => {
     makeApiRequest({
       method: 'GET',
@@ -38,6 +44,25 @@ export const Scrapper: React.FC<ScrapperProps> = ({
       },
     });
   };
+
+  // Function to handle downloading images from the API
+  const handleDownloadImage = () => {
+    if (imageData.length > 0) {
+      // Make API request to download images
+      makeApiRequest({
+        method: 'POST',
+        body: JSON.stringify({ data: imageData }),
+        loadingMessage: 'Download image...',
+        successMessage: 'Download image successful!',
+        endpoint: `/api/download_all_images?output_file_name=${encodeURIComponent(
+          outputFileName
+        )}`,
+        onSuccess: (data) => {},
+      });
+    }
+  };
+
+  // Return the JSX for the Scrapper component
   return (
     <>
       {/* Display image data pagination component if there is image data, otherwise display data input form */}
@@ -80,27 +105,44 @@ export const Scrapper: React.FC<ScrapperProps> = ({
               color='gradient-bp'
               size='small'
               isRounded
-              disabled={!link || (limits == 0 && isSpecificLimits)}
+              disabled={!link || (limits === 0 && isSpecificLimits)}
               onClick={handleGetData}
             >
               Get the data
             </Button>
+            {/* Button to trigger handleDownloadImage function */}
           </div>
         </div>
       )}
       {/* Display button to clear image data if there is image data */}
       {imageData.length > 0 && (
-        <div className='mx-auto my-2'>
-          <Button
-            size='medium'
-            color='gradient-bp'
-            onClick={() => {
-              setImageData([]);
-              setPercentages([]);
-            }}
-          >
-            Delete all data
-          </Button>
+        <div className='flex flex-col gap-2'>
+          <TextInput
+            input={outputFileName}
+            setInput={setOutputFileName}
+            placeHolder='Masukkan nama folder output'
+            type='text'
+          />
+          <div className=' my-2 flex gap-4 items-center justify-center'>
+            <Button
+              size='medium'
+              color='gradient-bp'
+              onClick={() => {
+                setImageData([]);
+                setPercentages([]);
+              }}
+            >
+              Delete all data
+            </Button>
+            <Button
+              color='gradient-bp'
+              size='medium'
+              disabled={imageData.length === 0}
+              onClick={handleDownloadImage}
+            >
+              Download Images
+            </Button>
+          </div>
         </div>
       )}
       {/* Display other input query options */}
