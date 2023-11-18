@@ -1,5 +1,12 @@
 // Import necessary dependencies and components
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import Image from 'next/image';
 import CustomLink from '@/components/custom-link';
 import { usePathname } from 'next/navigation';
@@ -34,7 +41,10 @@ const Camera: React.FC<CameraProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [facingMode, setFacingMode] = useState(FACING_MODE_USER);
 
+  const memorizeFacingMode = useMemo(() => facingMode, [facingMode]);
+
   // Function to flip the camera
+  console.log(facingMode);
 
   const flipCamera = useCallback(() => {
     setFacingMode((prevState) =>
@@ -104,7 +114,7 @@ const Camera: React.FC<CameraProps> = ({
             ref={videoRef}
             videoConstraints={{
               ...videoConstraints,
-              facingMode,
+              facingMode: memorizeFacingMode,
             }}
             screenshotFormat='image/png'
           />
