@@ -146,15 +146,17 @@ const Camera: React.FC<CameraProps> = ({
               className='hidden'
             ></canvas>
           </div>
-          <Webcam
-            audio={false}
-            ref={videoRef}
-            videoConstraints={{
-              ...videoConstraints,
-              facingMode: memorizeFacingMode,
-            }}
-            screenshotFormat='image/png'
-          />
+          <div className='max-lg:hidden'>
+            <Webcam
+              audio={false}
+              ref={videoRef}
+              videoConstraints={{
+                ...videoConstraints,
+                facingMode: memorizeFacingMode,
+              }}
+              screenshotFormat='image/png'
+            />
+          </div>
           <Button size='small' color='gradient-bp' onClick={flipCamera}>
             Flip Camera
           </Button>
