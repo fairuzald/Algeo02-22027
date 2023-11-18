@@ -6,13 +6,7 @@ import { makeApiRequest } from '@/lib/helper';
 import { IMAGE_FORMAT } from '@/types/image-format';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import React, {
-  useState,
-  ChangeEvent,
-  useEffect,
-  useRef,
-  DragEvent,
-} from 'react';
+import React, { useState, ChangeEvent, useRef, DragEvent } from 'react';
 import { toast } from 'react-hot-toast';
 
 // Interface for the component props
@@ -20,14 +14,12 @@ interface SingleFileUploadProps {
   setImageBase64: React.Dispatch<React.SetStateAction<string>>;
   imageBase64: string;
   type?: 'yolo' | 'normal';
-  setImageMatrix: React.Dispatch<React.SetStateAction<number[][][]>>;
 }
 
 // The SingleFileUpload component
 const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
   imageBase64,
   setImageBase64,
-  setImageMatrix,
   type = 'yolo',
 }) => {
   // State variables for managing the fileChange and image URL
@@ -49,9 +41,7 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
         endpoint: type == 'yolo' ? '/api/convert' : '/api/convert-no-yolo',
         onSuccess: (data) => {
           setImageFile(selectedFile);
-          if (data.matrix) {
-            setImageMatrix(data.matrix);
-          }
+
           if (data.base64) {
             setImageBase64(data.base64);
           }
@@ -90,7 +80,6 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
   const handleDelete = () => {
     setImageFile(null);
     setImageBase64('');
-    setImageMatrix([]);
   };
   // Render the component
   return (

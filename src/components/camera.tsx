@@ -9,8 +9,6 @@ import Button from '@/components/button';
 interface CameraProps {
   imageData: string;
   setImageData: React.Dispatch<React.SetStateAction<string>>;
-  imageMatrix: number[][][];
-  setImageMatrix: React.Dispatch<React.SetStateAction<number[][][]>>;
   isLoadingOutside?: boolean;
   triggerCBIRProcessing: (imageMatrix: number[][][]) => void;
 }
@@ -18,8 +16,6 @@ interface CameraProps {
 const Camera: React.FC<CameraProps> = ({
   imageData,
   setImageData,
-  imageMatrix,
-  setImageMatrix,
   isLoadingOutside = false,
   triggerCBIRProcessing,
 }) => {
@@ -95,11 +91,10 @@ const Camera: React.FC<CameraProps> = ({
             successMessage: 'Camera image processing successful!',
             endpoint: '/api/convert-camera',
             onSuccess: (data) => {
-              if (data.matrix) {
-                setImageMatrix(data.matrix);
+              if (data) {
                 setImageData(data.base64);
                 setIsLoading(false);
-                triggerCBIRProcessing(data.matrix);
+                triggerCBIRProcessing(data.base64);
               }
             },
           });

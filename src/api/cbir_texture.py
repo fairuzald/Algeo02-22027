@@ -1,14 +1,29 @@
+import base64
+import io
 import numpy as np
+from PIL import Image
 
 # NB : SEMUA FUNGSI DISINI PARAMETERNYA HARUS IMAGE YANG SUDAH DICONVERT KE BENTUK MATRIXNYA BUKAN PATH DARI IMAGENYA
 class ImageComparatorByTexture:
     def __init__(self, distance=1, levels=256):
         self.distance = distance
         self.levels = levels
+        
+    def process_base64_image(self, base64_string: str):
+        # Pisahkan metadata dan data base64 sebenarnya
+        _, base64_data = base64_string.split(",")
 
+        try:
+            image_data = base64.b64decode(base64_data)
+            image = Image.open(io.BytesIO(image_data))
+            image_matrix = np.array(image)
+            return image_matrix
+        except Exception as e:
+            print(f"Error processing image: {e}")
+            return None
+        
     def _convert_to_grayscale(self, img_matrix):
         # Convert RGB image to grayscale
-        img_matrix = np.array(img_matrix)  # Convert to NumPy array
         R, G, B = img_matrix[:,:,0], img_matrix[:,:,1], img_matrix[:,:,2]
         grayscale = 0.29 * R + 0.587 * G + 0.114 * B
         grayscale = grayscale.astype(np.uint8)

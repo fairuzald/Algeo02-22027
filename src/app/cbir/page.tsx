@@ -16,24 +16,17 @@ export default function Home() {
   // Image Query Data
 
   const [imageQuery, setImageQuery] = useState<string>('');
-  const [imageMatrixQuery, setImageMatrixQuery] = useState<number[][][]>([]);
   const [imageQueryCam, setImageQueryCam] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   // Image Data Set
   const [imageDataSet, setImageDataSet] = useState<string[]>([]);
-  const [imageMatrixDataSet, setImageMatrixDataSet] = useState<number[][][][]>(
-    []
-  );
 
   // Result Percentage
   const [resultPercentages, setResultPercentages] = useState<number[]>([]);
 
-  const triggerCBIRProcessing = (imageMatrix: number[][][]) => {
+  const triggerCBIRProcessing = (imageQuery: string) => {
     // Check if the dataset is available
     if (imageDataSet && imageDataSet.length > 0) {
-      // Set the image matrix for CBIR processing
-      setImageMatrixQuery(imageMatrix);
-
       // Call the CBIR processing function
       handleCBIR();
     } else {
@@ -98,17 +91,12 @@ export default function Home() {
       });
     }
   };
-
   const handleCBIR = async () => {
-    if (
-      imageMatrixDataSet &&
-      imageMatrixDataSet.length > 0 &&
-      imageMatrixQuery
-    ) {
+    if (imageDataSet && imageDataSet.length > 0 && imageQuery) {
       setIsLoading(true);
       const data = JSON.stringify({
-        matrix_query: imageMatrixQuery,
-        matrix_data_set: imageMatrixDataSet,
+        base64_query: imageQuery,
+        base64_dataset: imageDataSet,
       });
       makeApiRequest({
         body: data,
@@ -137,19 +125,17 @@ export default function Home() {
       </h1>
       <section>
         {isCamera ? (
-          <Camera
-            imageData={imageQueryCam}
-            setImageData={setImageQueryCam}
-            imageMatrix={imageMatrixQuery}
-            setImageMatrix={setImageMatrixQuery}
-            isLoadingOutside={isLoading}
-            triggerCBIRProcessing={triggerCBIRProcessing}
-          ></Camera>
+          <></>
         ) : (
+          // <Camera
+          //   imageData={imageQueryCam}
+          //   setImageData={setImageQueryCam}
+          //   isLoadingOutside={isLoading}
+          //   triggerCBIRProcessing={triggerCBIRProcessing}
+          // ></Camera>
           <SingleFileUpload
             imageBase64={imageQuery}
             setImageBase64={setImageQuery}
-            setImageMatrix={setImageMatrixQuery}
             type='yolo'
           />
         )}
@@ -177,10 +163,8 @@ export default function Home() {
           )}
         </div>
         <MultipleFileUpload
-          matrixImages={imageMatrixDataSet}
           setImageBase64s={setImageDataSet}
           imageBase64s={imageDataSet}
-          setMatrixImages={setImageMatrixDataSet}
           percentages={resultPercentages}
           setPercentages={setResultPercentages}
         />

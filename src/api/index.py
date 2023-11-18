@@ -1,5 +1,5 @@
 import time
-from fastapi import FastAPI, File, Request, UploadFile
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from typing import List
 from urllib.parse import urlparse, urlunparse
 from pydantic import BaseModel
@@ -48,33 +48,49 @@ async def convert_camera(request: Request):
     return await imageProcessor.convert_camera(image_data)
 
 @app.post("/api/cbir-color")
-async def compare_images(matrix_query: List[List[List[int]]], matrix_data_set: List[List[List[List[int]]]]):
+async def compare_images(data: dict):
     try:
+        base64_query = data.get("base64_query", "")
+        base64_dataset = data.get("base64_dataset", [])
+
         start_time = time.time()
-        image_comparator = ImageComparator(matrix_data_set)
+        image_comparator = ImageComparator(base64_dataset)
         image_comparator.load_dataset_histograms()
-        input_histogram = image_comparator.compute_global_color_histogram_hsv(matrix_query)
+
+        # Process query image
+        query_image_matrix = image_comparator.process_base64_image(base64_query)
+        input_histogram = image_comparator.compute_global_color_histogram_hsv(query_image_matrix)
+
         similarities = image_comparator.compare_images(input_histogram)
         elapsed_time = time.time() - start_time
+
         return {"similarities": similarities, "elapsed_time": elapsed_time}
-    except Exception as e:
-        print(f"Error in compare_images: {e}")
-        raise
-    
+    except Exception:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 @app.post("/api/cbir-texture")
-async def compare_images(matrix_query: List[List[List[int]]], matrix_data_set: List[List[List[List[int]]]]):
+async def compare_images(data: dict):
     try:
-    #    Prosessing di bagian ini
-    # ini ya
+        base64_query = data.get("base64_query", "")
+        base64_dataset = data.get("base64_dataset", [])
+
         start_time = time.time()
         image_comparator = ImageComparatorByTexture()
-        similarities = image_comparator.compare_with_dataset(matrix_query,matrix_data_set)
+
+        # Proses gambar query
+        query_matrix = image_comparator.process_base64_image(base64_query)
+
+        # Proses gambar dataset
+        dataset_matrices = [image_comparator.process_base64_image(base64_data) for base64_data in base64_dataset]
+
+        # Hitung kesamaan
+        similarities = image_comparator.compare_with_dataset(query_matrix, dataset_matrices)
+
         elapsed_time = time.time() - start_time
+
         return {"similarities": similarities, "elapsed_time": elapsed_time}
     except Exception as e:
         print(f"Error in compare_images: {e}")
         raise
-
     
 scraper = ImageScraper()
 @app.get("/api/scrape")

@@ -68,7 +68,7 @@ class ObjectDetector:
                         h = int(detection[3] * height)
                         x = int(center_x - w / 2)
                         y = int(center_y - h / 2)
-                        min_size = 50
+                        min_size = 100
 
                         # Check if bounding box dimensions meet the minimum size criteria
                         if w > min_size and h > min_size:
