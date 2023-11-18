@@ -58,10 +58,7 @@ class ImageProcessing:
 
             # Detect and crop the image
                 cropped_img = None
-                if(len(matrix.shape)==3):
-                    cropped_img = detector.detect_and_crop(matrix)
-                else:
-                    cropped_img = matrix
+                cropped_img = detector.detect_and_crop(matrix) if len(matrix.shape) == 3 else matrix
 
             # Save PIL Image to memory as bytes with PNG format
                 _, img_bytes = cv2.imencode('.png', cropped_img)

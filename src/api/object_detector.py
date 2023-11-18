@@ -15,7 +15,6 @@ class ObjectDetector:
             if not os.path.exists(weights_path) or not os.path.exists(cfg_path): 
                 raise HTTPException(status_code=404, detail="Error: YOLO file not found")
             
-
             # Load YOLO model using OpenCV
             self.net = cv2.dnn.readNet(weights_path, cfg_path)
         except HTTPException as e:

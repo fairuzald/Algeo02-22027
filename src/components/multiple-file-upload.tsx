@@ -113,8 +113,33 @@ const MultipleFileUpload: React.FC<MultipleFileUploadProps> = ({
       (file): file is File => file != null && IMAGE_FORMAT.includes(file.type)
     );
 
-    if (imageFiles && imageFiles.length > 0) {
-      setImageFiles(imageFiles);
+    if (imageFiles.length > 0) {
+      setImageFiles((prevFiles) => [...prevFiles, ...imageFiles]);
+      // Process each dropped file
+      for (const droppedFile of imageFiles) {
+        const formData = new FormData();
+        formData.append('files', droppedFile);
+
+        // Shoot API for each dropped file
+        makeApiRequest({
+          body: formData,
+          method: 'POST',
+          loadingMessage: 'File image processing...',
+          successMessage: 'File image processing successful!',
+          endpoint: '/api/convert-multiple',
+          onSuccess: (data) => {
+            // Dapatkan nilai sebelumnya
+            const prevImageBase64s = [...imageBase64s];
+
+            if (data.base64_images) {
+              setImageBase64s((prevImageBase64s) => [
+                ...prevImageBase64s,
+                ...data.base64_images,
+              ]);
+            }
+          },
+        });
+      }
     } else {
       toast.error(
         'Upload folder dengan ekstensi file png, jpg,webp, giff,bmp,tiff atau jpeg'

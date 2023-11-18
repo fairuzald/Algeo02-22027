@@ -13,6 +13,7 @@ from api.image_processing import ImageProcessing
 # Initialize ImageProcessing object
 imageProcessor = ImageProcessing()
 
+
 class ImageScraper:
     def _get_page(self, url: str) -> BeautifulSoup:
         try:
@@ -22,13 +23,7 @@ class ImageScraper:
             soup = BeautifulSoup(page.content, "html.parser")
             return soup
         except requests.HTTPError as e:
-            status_code = e.response.status_code
-            if status_code == 404:
-                raise HTTPException(status_code=404, detail="Page not found")
-            elif status_code == 500:
-                raise HTTPException(status_code=500, detail="Something went wrong")
-            else:
-                raise HTTPException(status_code=422, detail=str(e))
+            raise HTTPException(status_code=e.response.status_code, detail=str(e))
 
     def _get_page_driver(self, url: str) -> BeautifulSoup:
         try:
@@ -42,7 +37,7 @@ class ImageScraper:
             WebDriverWait(driver, 3).until(
                 EC.presence_of_all_elements_located((By.XPATH, "//body/*"))
             )
-         
+
             # Parse the page content with BeautifulSoup
             soup = BeautifulSoup(driver.page_source, "html.parser")
             return soup
@@ -58,9 +53,8 @@ class ImageScraper:
         try:
             base_url = url
             page = self._get_page(base_url)
-            raw_image = page.find_all("img", limit=limits)
-
-            if (len(raw_image) == 0 or raw_image is None or raw_image == []):
+            
+            if not (raw_image := page.find_all("img", limit=limits)):
                 page = self._get_page_driver(base_url)
                 raw_image = page.find_all("img", limit=limits)
                 print("Using Selenium webdriver")
@@ -68,17 +62,12 @@ class ImageScraper:
             lists = []
             for event in raw_image:
                 relative_url = event.get("src")
-                alt_text = event.get("alt")
-                if alt_text == "":
+                alt_text = event.get("alt", "")
+                if not alt_text:
                     alt_text = relative_url.split("/")[-1].split(".")[0]
                 if relative_url:
-                    if relative_url.startswith(("http", "https")):
-                        absolute_url = relative_url
-                    else:
-                        absolute_url = urljoin(base_url, relative_url)
-                    url_parts = urlsplit(absolute_url)
-                    path = url_parts.path
-                    file_extension = path.split(".")[-1].lower()
+                    absolute_url = urljoin(base_url, relative_url)
+                    file_extension = absolute_url.rsplit(".", 1)[-1].lower()
                     if file_extension in {'jpeg', 'jpg', 'png', 'gif', 'bmp', 'tiff', 'webp'}:
                         # Convert image to base64 using ImageProcessing
                         base64_image = imageProcessor.url_to_base64(absolute_url)

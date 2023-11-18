@@ -70,10 +70,30 @@ const SingleFileUpload: React.FC<SingleFileUploadProps> = ({
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const droppedFile = e.dataTransfer.files?.[0];
+
     if (droppedFile && IMAGE_FORMAT.includes(droppedFile.type)) {
-      setImageFile(droppedFile);
+      const formData = new FormData();
+      formData.append('file', droppedFile);
+      // Make API request hadnling
+      makeApiRequest({
+        body: formData,
+        method: 'POST',
+        loadingMessage: 'File image processing...',
+        successMessage: 'File image processing successful!',
+        endpoint: type == 'yolo' ? '/api/convert' : '/api/convert-no-yolo',
+        onSuccess: (data) => {
+          setImageFile(droppedFile);
+
+          if (data.base64) {
+            setImageBase64(data.base64);
+          }
+        },
+      });
     } else {
-      toast.error('Upload file dengan ekstensi png, jpg, atau jpeg');
+      toast.error(
+        'Upload folder dengan ekstensi file png, jpg,webp, giff,bmp,tiff atau jpeg'
+      );
+      setImageFile(null);
     }
   };
 

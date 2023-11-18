@@ -3,10 +3,8 @@ import base64
 import os
 import re
 
-
 class Downloader:
     def __init__(self):
-        # Dummy data: daftar base64 encoded images
         self.base64_images = []
 
     def download_all_images(self, data: dict, output_file_name: str):

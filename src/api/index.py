@@ -1,12 +1,9 @@
-import base64
 import json
-import os
 import time
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from typing import List
 from urllib.parse import urlparse, urlunparse
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 from api.downloader import Downloader
 from api.scraper import ImageScraper
 from api.cbir_color import ImageComparator
@@ -27,12 +24,6 @@ app.add_middleware(
 )
 
 imageProcessor = ImageProcessing()
-class ConvertImageToBase64Request(BaseModel):
-    urls: List[str]
-
-@app.post("/api/convert-image-to-base64")
-async def convert_image_to_base64(request: ConvertImageToBase64Request):
-    return await imageProcessor.url_to_base64(request.urls)
     
 @app.post("/api/convert")
 async def convert(file: UploadFile = File(...)):
@@ -61,8 +52,6 @@ async def compare_images(data: dict):
         start_time = time.time()
         image_comparator = ImageComparator(base64_dataset)
         image_comparator.load_dataset_histograms()
-
-        # Process query image
         query_image_matrix = image_comparator.process_base64_image(base64_query)
         input_histogram = image_comparator.compute_global_color_histogram_hsv(query_image_matrix)
 
@@ -72,6 +61,7 @@ async def compare_images(data: dict):
         return {"similarities": similarities, "elapsed_time": elapsed_time}
     except Exception:
         raise HTTPException(status_code=500, detail="Internal Server Error")
+    
 @app.post("/api/cbir-texture")
 async def compare_images(data: dict):
     try:
@@ -79,12 +69,11 @@ async def compare_images(data: dict):
         base64_dataset = data.get("base64_dataset", [])
         start_time = time.time()
         image_comparator = ImageComparatorByTexture()
-        # Proses gambar query
+
         query_matrix = image_comparator.process_base64_image(base64_query)
-        # Proses gambar dataset
         dataset_matrices = [image_comparator.process_base64_image(base64_data) for base64_data in base64_dataset]
-        # Hitung kesamaan
         similarities = image_comparator.compare_with_dataset(query_matrix, dataset_matrices)
+
         elapsed_time = time.time() - start_time
         return {"similarities": similarities, "elapsed_time": elapsed_time}
     except Exception as e:
