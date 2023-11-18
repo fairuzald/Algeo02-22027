@@ -11,20 +11,13 @@ import React, { useState } from 'react';
 interface ScrapperProps {
   imageData: ImageDataType[];
   setImageData: React.Dispatch<React.SetStateAction<ImageDataType[]>>;
-  imageDataMatrix: number[][][][];
-  setImageDataMatrix: React.Dispatch<React.SetStateAction<number[][][][]>>;
   percentages?: number[];
   setPercentages: React.Dispatch<React.SetStateAction<number[]>>;
-}
-interface ImageDataWithMatrix extends ImageDataType {
-  matrix: number[][][];
 }
 
 export const Scrapper: React.FC<ScrapperProps> = ({
   imageData,
-  imageDataMatrix,
   setImageData,
-  setImageDataMatrix,
   percentages,
   setPercentages,
 }) => {
@@ -40,16 +33,8 @@ export const Scrapper: React.FC<ScrapperProps> = ({
       endpoint: `/api/scrape?url=${encodeURIComponent(link)}&limits=${
         isSpecificLimits ? limits : 0
       }`,
-      onSuccess: (data: ImageDataWithMatrix[]) => {
-        // Separate data into matrix and non-matrix
-        const nonMatrixData = data.map(({ matrix, ...rest }) => rest);
-
-        const matrixData = data
-          .filter((item) => item.matrix)
-          .map(({ matrix }) => matrix);
-
-        setImageData(nonMatrixData);
-        setImageDataMatrix(matrixData);
+      onSuccess: (data: ImageDataType[]) => {
+        setImageData(data);
       },
     });
   };
@@ -111,7 +96,6 @@ export const Scrapper: React.FC<ScrapperProps> = ({
             color='gradient-bp'
             onClick={() => {
               setImageData([]);
-              setImageDataMatrix([]);
               setPercentages([]);
             }}
           >

@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import CustomLink from '@/components/custom-link';
@@ -10,7 +11,7 @@ interface CameraProps {
   imageData: string;
   setImageData: React.Dispatch<React.SetStateAction<string>>;
   isLoadingOutside?: boolean;
-  triggerCBIRProcessing: (imageMatrix: number[][][]) => void;
+  triggerCBIRProcessing: (imageQuery: string) => void;
 }
 
 const Camera: React.FC<CameraProps> = ({
@@ -29,52 +30,6 @@ const Camera: React.FC<CameraProps> = ({
     setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'));
   };
 
-  useEffect(() => {
-    const handleBeforeUnload = () => {};
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, []);
-
-  useEffect(() => {
-    // Mengakses webcam
-    navigator.mediaDevices
-      .getUserMedia({ video: { facingMode } })
-      .then((stream) => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      });
-
-    // Mengatur interval waktu untuk menangkap gambar
-    const interval = setInterval(() => {
-      if (!isLoading && !isLoadingOutside) {
-        captureImage();
-      }
-    }, 10000); // Menangkap gambar setiap 15 detik
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [isLoading, isLoadingOutside, facingMode]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (countdown > 0 && !isLoading && !isLoadingOutside) {
-        setCountdown((prev) => prev - 1);
-      } else {
-        clearInterval(interval);
-        setCountdown(10);
-      }
-    }, 1000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [countdown, isLoading, isLoadingOutside]);
   const captureImage = async () => {
     setIsLoading(true);
 
@@ -94,7 +49,7 @@ const Camera: React.FC<CameraProps> = ({
               if (data) {
                 setImageData(data.base64);
                 setIsLoading(false);
-                triggerCBIRProcessing(data.base64);
+                triggerCBIRProcessing(data.base64 as string);
               }
             },
           });
@@ -105,6 +60,34 @@ const Camera: React.FC<CameraProps> = ({
       }
     }
   };
+
+  useEffect(() => {
+    navigator.mediaDevices
+      .getUserMedia({ video: { facingMode } })
+      .then((stream) => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play();
+        }
+      });
+
+    const interval = setInterval(() => {
+      if (!isLoading && !isLoadingOutside) {
+        setCountdown((prevCountdown) =>
+          prevCountdown > 0 ? prevCountdown - 1 : 10
+        );
+
+        if (countdown === 0) {
+          captureImage();
+          setCountdown(10); // Reset countdown to 10 after it reaches 0
+        }
+      }
+    }, 1000); // Update countdown every second
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isLoading, isLoadingOutside, facingMode, countdown]);
 
   const pathname = usePathname();
 
@@ -129,9 +112,6 @@ const Camera: React.FC<CameraProps> = ({
           <Button size='small' color='gradient-bp' onClick={flipCamera}>
             Flip Camera
           </Button>
-          <p className='text-white font-poppins text-base lg:text-xl text-center'>
-            Video
-          </p>
         </div>
         <div className='w-full lg:w-1/2 flex flex-col items-center justify-center gap-4'>
           <Image
@@ -146,13 +126,10 @@ const Camera: React.FC<CameraProps> = ({
             {isLoading || isLoadingOutside
               ? 'Data gambar sedang diolah'
               : countdown > 0
-              ? 'Catch Image in ' + countdown
-              : 'Cheese!!!'}{' '}
-            {!isLoading &&
-              !isLoadingOutside &&
-              (countdown > 0 && countdown == 1
-                ? 'second'
-                : countdown > 0 && 'seconds')}
+              ? `Catch Image in ${countdown} ${
+                  countdown === 1 ? 'second' : 'seconds'
+                }`
+              : 'Cheese!!!'}
           </p>
         </div>
       </div>

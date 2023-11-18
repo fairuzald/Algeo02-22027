@@ -125,14 +125,13 @@ export default function Home() {
       </h1>
       <section>
         {isCamera ? (
-          <></>
+          <Camera
+            imageData={imageQueryCam}
+            setImageData={setImageQueryCam}
+            isLoadingOutside={isLoading}
+            triggerCBIRProcessing={triggerCBIRProcessing}
+          ></Camera>
         ) : (
-          // <Camera
-          //   imageData={imageQueryCam}
-          //   setImageData={setImageQueryCam}
-          //   isLoadingOutside={isLoading}
-          //   triggerCBIRProcessing={triggerCBIRProcessing}
-          // ></Camera>
           <SingleFileUpload
             imageBase64={imageQuery}
             setImageBase64={setImageQuery}
