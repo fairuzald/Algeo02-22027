@@ -32,7 +32,7 @@ const Camera: React.FC<CameraProps> = ({
   const videoRef = useRef<Webcam>(null);
   const [countdown, setCountdown] = useState<number>(10);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
+  const [facingMode, setFacingMode] = useState(FACING_MODE_USER);
 
   // Function to flip the camera
 
