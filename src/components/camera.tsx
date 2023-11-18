@@ -37,8 +37,6 @@ const Camera: React.FC<CameraProps> = ({
   triggerCBIRProcessing,
 }) => {
   const videoRef = useRef<Webcam>(null);
-  const altVideoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [countdown, setCountdown] = useState<number>(10);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [facingMode, setFacingMode] = useState(FACING_MODE_USER);
@@ -59,52 +57,33 @@ const Camera: React.FC<CameraProps> = ({
   // Function to capture image from the camera
   const captureImage = async () => {
     setIsLoading(true);
-    var dataUrl = '';
 
     if (videoRef.current) {
-      dataUrl = videoRef.current.getScreenshot() as string;
-    }
-
-    if (!dataUrl && canvasRef.current && altVideoRef.current) {
-      const context = canvasRef.current.getContext('2d');
-
-      if (context) {
-        context.drawImage(altVideoRef.current, 0, 0, 640, 480);
-        dataUrl = canvasRef.current.toDataURL('image/png');
+      const dataUrl = videoRef.current.getScreenshot();
+      if (dataUrl) {
+        makeApiRequest({
+          body: JSON.stringify({ image_data: dataUrl }),
+          method: 'POST',
+          loadingMessage: 'Camera image processing...',
+          successMessage: 'Camera image processing successful!',
+          endpoint: '/api/convert-camera',
+          onSuccess: (data) => {
+            if (data) {
+              setImageData(data.base64);
+              setIsLoading(false);
+              triggerCBIRProcessing(data.base64 as string);
+            }
+          },
+        });
+      } else {
+        setIsLoading(false);
+        toast.error('Failed to capture image!');
       }
-    }
-
-    if (dataUrl) {
-      makeApiRequest({
-        body: JSON.stringify({ image_data: dataUrl }),
-        method: 'POST',
-        loadingMessage: 'Camera image processing...',
-        successMessage: 'Camera image processing successful!',
-        endpoint: '/api/convert-camera',
-        onSuccess: (data) => {
-          if (data) {
-            setImageData(data.base64);
-            setIsLoading(false);
-            triggerCBIRProcessing(data.base64 as string);
-          }
-        },
-      });
-    } else {
-      setIsLoading(false);
-      toast.error('Failed to capture image!');
     }
   };
 
   // useEffect hook to handle camera initialization and countdown
   useEffect(() => {
-    navigator.mediaDevices
-      .getUserMedia({ video: { facingMode } })
-      .then((stream) => {
-        if (altVideoRef.current) {
-          altVideoRef.current.srcObject = stream;
-          altVideoRef.current.play();
-        }
-      });
     const interval = setInterval(() => {
       if (!isLoading && !isLoadingOutside) {
         setCountdown((prevCountdown) =>
@@ -130,33 +109,15 @@ const Camera: React.FC<CameraProps> = ({
     <div className='flex flex-col gap-8 items-center justify-center'>
       <div className='flex flex-col lg:flex-row justify-center gap-10 w-full items-center lg:items-stretch'>
         <div className='w-full lg:w-1/2 flex flex-col items-center justify-center gap-4'>
-          <div className='lg:hidden'>
-            <video
-              ref={altVideoRef}
-              width={640}
-              height={480}
-              autoPlay
-              playsInline
-              className='h-full max-lg:max-h-[280px] lg:h-[320px] 2xl:h-[480px] w-full bg-transparent'
-            ></video>
-            <canvas
-              ref={canvasRef}
-              width={640}
-              height={480}
-              className='hidden'
-            ></canvas>
-          </div>
-          <div className='max-lg:hidden'>
-            <Webcam
-              audio={false}
-              ref={videoRef}
-              videoConstraints={{
-                ...videoConstraints,
-                facingMode: memorizeFacingMode,
-              }}
-              screenshotFormat='image/png'
-            />
-          </div>
+          <Webcam
+            audio={false}
+            ref={videoRef}
+            videoConstraints={{
+              ...videoConstraints,
+              facingMode: memorizeFacingMode,
+            }}
+            screenshotFormat='image/png'
+          />
           <Button size='small' color='gradient-bp' onClick={flipCamera}>
             Flip Camera
           </Button>
