@@ -48,6 +48,7 @@ Check out the live demo: [CBIR Demo](https://algeo02-22027.vercel.app/)
 
 - **Next.js:** React framework for building web applications.
 - **Tailwind CSS:** Utility-first CSS framework for styling.
+- **Typesript:** JavaScript with syntax for types.
 - **React:** JavaScript library for building user interfaces.
 - **React-Hot-Toast:** Toast notifications for React applications.
 
