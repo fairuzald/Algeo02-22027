@@ -74,7 +74,7 @@ export default function Home() {
         </h2>
         <iframe
           className='h-[250px] md:h-[300px] w-full max-w-[400px] lg:h-[20vw] lg:w-[30vw] lg:max-w-[600px] lg:max-h-[500px] video__iframe'
-          src='https://www.youtube.com/embed/SLfZstRNbcU?autoplay=1'
+          src='https://www.youtube.com/embed/qAsYhie9_KI?autoplay=1'
           frameBorder='0'
           allowFullScreen
         ></iframe>
